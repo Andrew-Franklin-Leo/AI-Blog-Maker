@@ -1,10 +1,21 @@
-name: Release
+name: Release and Deploy
 
 on:
   push:
     branches:
+      - develop
+      - 'release/**'
+  pull_request:
+    branches:
       - main
       - develop
+      - 'release/**'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -24,8 +35,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+        
       - name: Run tests
-        run: npm test
+        run: npm run test
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -38,32 +55,98 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
 
-  release:
+  create-release:
     needs: validate
-    if: github.ref == 'refs/heads/main'
+    if: |
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       
-      - name: Get version from package.json
+      - name: Create release branch
+        run: |
+          git checkout -b release/v${{ github.event.inputs.version }}
+          git push origin release/v${{ github.event.inputs.version }}
+
+      - name: Update version
+        run: |
+          npm version ${{ github.event.inputs.version }} --no-git-tag-version
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add package.json package-lock.json
+          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
+          git push origin release/v${{ github.event.inputs.version }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          title: 'Release v${{ github.event.inputs.version }}'
+          body: |
+            # Release v${{ github.event.inputs.version }}
+            
+            ## Changes
+            Please review the changes and ensure all checks pass before merging.
+            
+            ## Checklist
+            - [ ] Version bumped
+            - [ ] CHANGELOG updated
+            - [ ] Tests passing
+            - [ ] Documentation updated
+            - [ ] Security scan clean
+            - [ ] Performance acceptable
+            
+            ## Deployment Plan
+            1. Merge to main
+            2. Auto-deploy to staging
+            3. Manual verification
+            4. Auto-deploy to production
+            
+            ## Rollback Plan
+            If issues are detected:
+            1. Revert merge commit
+            2. Delete release tag
+            3. Deploy previous version
+          branch: release/v${{ github.event.inputs.version }}
+          base: main
+          labels: release
+          draft: false
+
+  release:
+    needs: validate
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: github-pages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version
         id: version
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
       
-      - name: Create Release
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ steps.version.outputs.version }}
           name: Release v${{ steps.version.outputs.version }}
-          body: |
-            Please refer to [CHANGELOG.md](./CHANGELOG.md) for details.
+          body_path: CHANGELOG.md
           draft: false
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
 
   deploy:
-    needs: validate
+    needs: [validate, release]
+    if: |
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' ||
+       github.ref == 'refs/heads/develop' ||
+       startsWith(github.ref, 'refs/heads/release/'))
     runs-on: ubuntu-latest
     environment:
       name: github-pages
