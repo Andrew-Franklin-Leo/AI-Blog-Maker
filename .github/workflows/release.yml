@@ -1,6 +1,15 @@
 name: Release Workflow
 
 on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
+      - 'hotfix/**'
+  pull_request:
+    types:
+      - closed
   workflow_dispatch:
     inputs:
       version:
@@ -15,9 +24,6 @@ on:
           - release
           - hotfix
         default: "release"
-  pull_request:
-    types:
-      - closed
 
 permissions:
   contents: write
@@ -32,6 +38,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Run checks on push events
+  verify:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Type check
+        run: npm run typecheck
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
+
+  # Validate version for workflow_dispatch
   validate_version:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
@@ -43,6 +79,7 @@ jobs:
             exit 1
           fi
 
+  # Main release workflow
   release_workflow:
     needs: [validate_version]
     if: |
@@ -73,33 +110,9 @@ jobs:
           sudo apt-get install gh
           gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
 
-      # Run dry-run for workflow_dispatch
-      - uses: ./.github/actions/gitflow
-        id: dry_run
-        if: github.event_name == 'workflow_dispatch'
-        with:
-          develop_branch: "develop"
-          main_branch: "main"
-          version: ${{ github.event.inputs.version }}
-          dry_run: 'true'
-
-      # Generate release summary
-      - id: generate_summary
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          prs=$(gh pr list --base develop --state merged --json number,title,body --limit 100)
-          
-          echo "## 🚀 What's Changed" > summary.md
-          echo "" >> summary.md
-          
-          echo "$prs" | jq -r '.[] | "### #\(.number) \(.title)\n\(.body)\n"' >> summary.md
-          
-          echo "release_summary<<EOF" >> $GITHUB_OUTPUT
-          cat summary.md >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       # Run GitFlow action
-      - uses: ./.github/actions/gitflow
+      - name: GitFlow Process
+        uses: ./.github/actions/gitflow
         id: release
         with:
           develop_branch: "develop"
@@ -107,7 +120,7 @@ jobs:
           version: ${{ github.event.inputs.version }}
           release_summary: ${{ steps.generate_summary.outputs.release_summary }}
 
-      # Install dependencies and run checks
+      # Install and verify
       - name: Install dependencies
         run: npm ci
 
@@ -117,7 +130,7 @@ jobs:
       - name: Run tests
         run: npm test
 
-      # Build the project
+      # Build and deploy
       - name: Build
         if: |
           github.event_name == 'pull_request' && 
