@@ -2,6 +2,8 @@
 
 A modern blog platform built with React, Vite, Supabase, and OpenRouter AI integration.
 
+[![Release Workflow](https://github.com/Andrew-Franklin-Leo/AI-Blog-Maker/actions/workflows/release.yml/badge.svg?branch=develop)](https://github.com/Andrew-Franklin-Leo/AI-Blog-Maker/actions/workflows/release.yml)
+
 ## Features
 
 - 📝 AI-powered blog post generation
