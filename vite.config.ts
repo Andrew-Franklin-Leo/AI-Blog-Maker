@@ -6,8 +6,7 @@ import { resolve } from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  // Set base URL for GitHub Pages
-  base: process.env.GITHUB_ACTIONS ? '/li-xia-blog/' : '/',
+  base: '/AI-Blog-Maker/',
   build: {
     outDir: 'dist',
     rollupOptions: {
