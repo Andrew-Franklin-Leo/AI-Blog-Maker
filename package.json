@@ -1,7 +1,7 @@
 {
   "name": "li-xia-blog",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "homepage": "https://andrew-franklin-leo.github.io/AI-Blog-Maker/",
   "scripts": {
@@ -45,6 +45,9 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
+    "eslint-visitor-keys": "^4.2.0",
+    "espree": "^10.3.0",
+    "globals": "^14.0.0",
     "happy-dom": "^16.8.1",
     "husky": "^8.0.3",
     "jsdom": "^26.0.0",
