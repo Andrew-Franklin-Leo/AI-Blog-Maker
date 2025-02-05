@@ -1,0 +1,184 @@
+name: 'GitFlow Workflow Action'
+description: 'Manages GitFlow releases and hotfixes'
+
+inputs:
+  develop_branch:
+    description: 'Name of the develop branch'
+    required: true
+    default: 'develop'
+  main_branch:
+    description: 'Name of the main branch'
+    required: true
+    default: 'main'
+  version:
+    description: 'Version to release'
+    required: true
+  release_summary:
+    description: 'Release summary'
+    required: false
+    default: ''
+  dry_run:
+    description: 'Run in dry run mode'
+    required: false
+    default: 'false'
+
+outputs:
+  type:
+    description: 'Type of the release (release or hotfix)'
+    value: ${{ steps.prepare.outputs.type }}
+  version:
+    description: 'Version of the release'
+    value: ${{ steps.prepare.outputs.version }}
+  pull_number:
+    description: 'Pull request number'
+    value: ${{ steps.create_pr.outputs.pull_number }}
+  pull_numbers_in_release:
+    description: 'Comma separated pull request numbers included in release'
+    value: ${{ steps.get_changes.outputs.pull_numbers }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Git
+      shell: bash
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+
+    - name: Get release type and branch
+      id: prepare
+      shell: bash
+      run: |
+        # Determine if this is a release or hotfix
+        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+          branch="${{ github.event.pull_request.head.ref }}"
+          if [[ "$branch" == release/* ]]; then
+            echo "type=release" >> $GITHUB_OUTPUT
+          elif [[ "$branch" == hotfix/* ]]; then
+            echo "type=hotfix" >> $GITHUB_OUTPUT
+          else
+            echo "type=none" >> $GITHUB_OUTPUT
+          fi
+          echo "version=${branch#*/}" >> $GITHUB_OUTPUT
+        else
+          # For workflow_dispatch
+          if [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+            if [[ "${{ github.base_ref }}" == "${{ inputs.main_branch }}" ]]; then
+              echo "type=hotfix" >> $GITHUB_OUTPUT
+            else
+              echo "type=release" >> $GITHUB_OUTPUT
+            fi
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid version format" >&2
+            exit 1
+          fi
+        fi
+
+    - name: Get changes for release notes
+      if: inputs.dry_run != 'true'
+      id: get_changes
+      shell: bash
+      run: |
+        # Get all PRs merged since last release
+        last_release=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        if [ -n "$last_release" ]; then
+          pull_numbers=$(git log $last_release..HEAD --format="%s" | 
+            grep -o "#[0-9]\+" | 
+            tr -d "#" | 
+            sort -u | 
+            tr "\n" "," | 
+            sed 's/,$//')
+          echo "pull_numbers=$pull_numbers" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create or update release branch
+      if: inputs.dry_run != 'true'
+      shell: bash
+      run: |
+        release_type="${{ steps.prepare.outputs.type }}"
+        version="${{ steps.prepare.outputs.version }}"
+        branch_name="${release_type}/${version}"
+
+        # Create and switch to release branch
+        if [[ "$release_type" == "hotfix" ]]; then
+          git checkout ${{ inputs.main_branch }}
+        else
+          git checkout ${{ inputs.develop_branch }}
+        fi
+        git pull origin $(git branch --show-current)
+        git checkout -b "$branch_name"
+
+        # Update version in package.json
+        npm version $version --no-git-tag-version
+
+        git add package.json package-lock.json
+        git commit -m "chore: bump version to ${version}"
+        git push origin "$branch_name"
+
+    - name: Create pull request
+      if: inputs.dry_run != 'true'
+      id: create_pr
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        release_type="${{ steps.prepare.outputs.type }}"
+        version="${{ steps.prepare.outputs.version }}"
+        branch_name="${release_type}/${version}"
+        target_branch="${{ inputs.main_branch }}"
+
+        # Prepare PR body
+        pr_body="## ${release_type^} ${version}
+
+        ${{ inputs.release_summary }}
+
+        ## Deployment Checklist
+        - [ ] All tests passing
+        - [ ] Documentation updated
+        - [ ] Environment variables configured
+        - [ ] Database migrations ready
+        - [ ] Monitoring configured
+
+        ## Changes
+        $(git log $target_branch..$branch_name --format="* %s")"
+
+        # Create PR
+        pr_url=$(gh pr create \
+          --base "$target_branch" \
+          --head "$branch_name" \
+          --title "${release_type^}: ${version}" \
+          --body "$pr_body")
+
+        echo "pull_number=$(echo $pr_url | grep -o '[0-9]\+$')" >> $GITHUB_OUTPUT
+
+    - name: Tag release
+      if: |
+        inputs.dry_run != 'true' && 
+        github.event_name == 'pull_request' && 
+        github.event.pull_request.merged == true
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        version="${{ steps.prepare.outputs.version }}"
+        git tag -a "v${version}" -m "Release ${version}"
+        git push origin "v${version}"
+
+        gh release create "v${version}" \
+          --title "Release ${version}" \
+          --notes "${{ inputs.release_summary }}" \
+          --target ${{ inputs.main_branch }}
+
+    - name: Merge back to develop
+      if: |
+        inputs.dry_run != 'true' && 
+        github.event_name == 'pull_request' && 
+        github.event.pull_request.merged == true &&
+        steps.prepare.outputs.type == 'release'
+      shell: bash
+      run: |
+        git checkout ${{ inputs.develop_branch }}
+        git pull origin ${{ inputs.develop_branch }}
+        git merge --no-ff ${{ inputs.main_branch }} -m "chore: merge ${steps.prepare.outputs.version} back to develop"
+        git push origin ${{ inputs.develop_branch }}
