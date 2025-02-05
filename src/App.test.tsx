@@ -1,12 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen } from './test/test-utils';
 import App from './App';
 
 describe('App', () => {
   it('renders without crashing', () => {
     render(<App />);
-    // Test that at least one heading exists in the app
-    const headingElement = screen.getByRole('heading', { level: 1 });
+    // Test that the main heading exists
+    const headingElement = screen.getByRole('heading', { 
+      level: 1,
+      name: /Blog Posts/i 
+    });
     expect(headingElement).toBeInTheDocument();
   });
 
@@ -15,5 +18,9 @@ describe('App', () => {
     // Test that the navigation exists
     const navElement = screen.getByRole('navigation');
     expect(navElement).toBeInTheDocument();
+
+    // Test that important navigation links are present
+    expect(screen.getByRole('link', { name: /home/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /create/i })).toBeInTheDocument();
   });
 });
