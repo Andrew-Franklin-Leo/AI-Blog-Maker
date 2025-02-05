@@ -1,205 +1,85 @@
-name: Release Workflow
+name: Release
 
 on:
   push:
     branches:
       - main
       - develop
-      - 'release/**'
-      - 'hotfix/**'
-  pull_request:
-    types:
-      - closed
-  workflow_dispatch:
-    inputs:
-      version:
-        type: string
-        required: true
-        description: "Version to release (e.g., 1.2.0)"
-      type:
-        type: choice
-        required: true
-        description: "Type of release"
-        options:
-          - release
-          - hotfix
-        default: "release"
-
-permissions:
-  contents: write
-  pull-requests: write
-  issues: write
-  pages: write
-  id-token: write
-
-# Allow only one release workflow at a time
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
-  # Run checks on push events
-  verify:
-    if: github.event_name == 'push'
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
+          node-version: '18'
           cache: 'npm'
       
       - name: Install dependencies
         run: npm ci
-      
-      - name: Type check
-        run: npm run typecheck
-      
+        
       - name: Run tests
         run: npm test
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
       
-      - name: Build
+      - name: Build project
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
 
-  # Validate version for workflow_dispatch
-  validate_version:
-    if: github.event_name == 'workflow_dispatch'
+  release:
+    needs: validate
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    steps:
-      - name: Validate version format
-        run: |
-          if ! [[ ${{ github.event.inputs.version }} =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
-            echo "Invalid version format. Must be in semver format (e.g., 1.2.0 or 1.2.0-beta.1)"
-            exit 1
-          fi
-
-  # Main release workflow
-  release_workflow:
-    needs: [validate_version]
-    if: |
-      github.event_name == 'workflow_dispatch' || 
-      (github.event_name == 'pull_request' && github.event.pull_request.merged == true && 
-       (startsWith(github.event.pull_request.head.ref, 'release/') || 
-        startsWith(github.event.pull_request.head.ref, 'hotfix/')))
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      
+      - name: Get version from package.json
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          node-version: '18.x'
+          tag_name: v${{ steps.version.outputs.version }}
+          release_name: Release v${{ steps.version.outputs.version }}
+          body: |
+            Please refer to [CHANGELOG.md](./CHANGELOG.md) for details.
+          draft: false
+          prerelease: false
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
           cache: 'npm'
-
-      - name: Install GitHub CLI
-        run: |
-          sudo apt-get update
-          sudo apt-get install gh
-          gh auth login --with-token <<< "${{ secrets.GITHUB_TOKEN }}"
-
-      # Run GitFlow action
-      - name: GitFlow Process
-        uses: ./.github/actions/gitflow
-        id: release
-        with:
-          develop_branch: "develop"
-          main_branch: "main"
-          version: ${{ github.event.inputs.version }}
-          release_summary: ${{ steps.generate_summary.outputs.release_summary }}
-
-      # Install and verify
+      
       - name: Install dependencies
         run: npm ci
-
-      - name: Type check
-        run: npm run typecheck
-
-      - name: Run tests
-        run: npm test
-
-      # Build and deploy
-      - name: Build
-        if: |
-          github.event_name == 'pull_request' && 
-          github.event.pull_request.merged == true && 
-          github.event.pull_request.base.ref == 'main'
+      
+      - name: Build project
+        run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
-        run: npm run build
-
-      # Setup and deploy to GitHub Pages
-      - name: Setup Pages
-        if: |
-          github.event_name == 'pull_request' && 
-          github.event.pull_request.merged == true && 
-          github.event.pull_request.base.ref == 'main'
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        if: |
-          github.event_name == 'pull_request' && 
-          github.event.pull_request.merged == true && 
-          github.event.pull_request.base.ref == 'main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
-
+      
       - name: Deploy to GitHub Pages
-        if: |
-          github.event_name == 'pull_request' && 
-          github.event.pull_request.merged == true && 
-          github.event.pull_request.base.ref == 'main'
-        id: deployment
-        uses: actions/deploy-pages@v4
-
-      # Notify completion
-      - name: Notify completion
-        if: always()
-        uses: actions/github-script@v7
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          script: |
-            const conclusion = '${{ job.status }}';
-            const version = '${{ github.event.inputs.version }}' || '${{ github.event.pull_request.head.ref }}'.split('/')[1];
-            const type = '${{ steps.release.outputs.type }}';
-            const pageUrl = '${{ steps.deployment.outputs.page_url }}';
-            
-            let message = '';
-            if (conclusion === 'success') {
-              if ('${{ github.event_name }}' === 'workflow_dispatch') {
-                message = `✅ ${type} PR for version ${version} created successfully!`;
-              } else {
-                message = `✅ ${type} ${version} process completed:\n` +
-                  `- Release tagged and published\n` +
-                  `- Changes merged to main\n` +
-                  `- Deployed to GitHub Pages: ${pageUrl || '(deployment skipped)'}\n` +
-                  `- Changes merged back to develop`;
-              }
-            } else {
-              message = `❌ ${type} workflow failed. Please check the logs.`;
-            }
-            
-            try {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: message
-              });
-            } catch (error) {
-              console.error('Failed to create comment:', error);
-            }
+          folder: dist
+          branch: gh-pages
