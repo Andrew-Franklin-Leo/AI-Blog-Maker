@@ -1,5 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { resolve } from 'path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -8,16 +10,14 @@ export default defineConfig({
   base: process.env.GITHUB_ACTIONS ? '/li-xia-blog/' : '/',
   build: {
     outDir: 'dist',
-    // Generate a 404 page for SPA routing
     rollupOptions: {
       input: {
-        main: 'index.html',
-        '404': '404.html'
-      }
+        main: resolve(__dirname, 'index.html'),
+      },
     }
   },
   server: {
     port: 3000,
     strictPort: true
   }
-})
+});
