@@ -6,6 +6,11 @@ on:
       - main
       - develop
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -61,6 +66,9 @@ jobs:
   deploy:
     needs: validate
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -78,8 +86,14 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_OPENROUTER_API_KEY: ${{ secrets.VITE_OPENROUTER_API_KEY }}
       
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
         with:
-          folder: dist
-          branch: gh-pages
+          path: './dist'
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
