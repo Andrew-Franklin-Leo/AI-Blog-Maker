@@ -1,70 +1,57 @@
-import fetch from 'node-fetch';
-import dotenv from 'dotenv';
-import path from 'path';
+/* eslint-env node */
 import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import dotenv from 'dotenv';
 
-// Load environment variables
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// Set up __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY;
+// Load environment variables from .env file
+dotenv.config({ path: join(__dirname, '../.env') });
 
-if (!OPENROUTER_API_KEY) {
-  console.error('Error: VITE_OPENROUTER_API_KEY not found in environment variables');
+// eslint-disable-next-line no-undef
+const API_KEY = process.env.OPENROUTER_API_KEY;
+if (!API_KEY) {
+  // eslint-disable-next-line no-undef
+  console.error('OPENROUTER_API_KEY environment variable is required');
+  // eslint-disable-next-line no-undef
   process.exit(1);
 }
 
-const testOpenRouter = async () => {
+async function testOpenRouter() {
   try {
-    console.log('Testing OpenRouter API connection...');
-    const requestBody = {
-      model: "deepseek/deepseek-r1:free",
-      messages: [{
-        role: "user",
-        content: "Say hello"
-      }]
-    };
-
-    console.log('\nRequest Body:', JSON.stringify(requestBody, null, 2));
-
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`
+        'HTTP-Referer': 'https://your-site.com',
+        'Authorization': `Bearer ${API_KEY}`
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({
+        model: 'openai/gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: 'Hello! Can you help me test the OpenRouter API?'
+          }
+        ]
+      })
     });
 
-    console.log('\nResponse Status:', response.status);
-    console.log('Response Headers:', Object.fromEntries(response.headers));
-
-    const text = await response.text();
-    console.log('\nRaw Response:', text);
-
     if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    try {
-      const data = JSON.parse(text);
-      console.log('\nParsed Response:', JSON.stringify(data, null, 2));
-    } catch (e) {
-      console.error('\nFailed to parse response as JSON:', e.message);
-    }
-
+    const data = await response.json();
+    // eslint-disable-next-line no-undef
+    console.log('API Response:', JSON.stringify(data, null, 2));
   } catch (error) {
-    console.error('\nError:', error.message);
-    if (error.response) {
-      try {
-        const text = await error.response.text();
-        console.error('Error Response:', text);
-      } catch (e) {
-        console.error('Failed to read error response');
-      }
-    }
+    // eslint-disable-next-line no-undef
+    console.error('Error testing OpenRouter API:', error);
+    // eslint-disable-next-line no-undef
+    process.exit(1);
   }
-};
+}
 
-console.log('Starting OpenRouter API test...\n');
 testOpenRouter();

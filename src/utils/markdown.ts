@@ -1,86 +1,98 @@
-export const formatToMarkdown = (title: string, content: string): string => {
-  // Remove any existing markdown headers and dividers
-  let formatted = content
-    .replace(/^#{1,6}\s/gm, '')
-    .replace(/^---+$/gm, '')
-    .replace(/\*\*/g, '') // Remove bold markers
-    .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with double newlines
+import sanitizeHtml from 'sanitize-html';
 
-  // Split content into sections based on numbered points or section titles
-  const sections = formatted.split(/(?=\d\.\s|\b(?:The\s(?:Hook|Struggle|Lessons|Reflection|Advice|Beginning|Closing))\b)/i)
+export function formatMarkdown(markdown: string): string {
+  const formatted = markdown
+    .replace(/^#\s+/gm, '### ') // Convert h1 to h3
+    .replace(/^##\s+/gm, '#### ') // Convert h2 to h4
+    .replace(/^###(?!#)\s+/gm, '##### ') // Convert h3 to h5
+    .replace(/^\*\s+/gm, '• ') // Convert asterisk lists to bullet points
+    .replace(/^-\s+/gm, '• ') // Convert dash lists to bullet points
+    .replace(/^>\s+/gm, '❝ ') // Convert blockquotes
+    .replace(/`([^`]+)`/g, '『$1』') // Convert inline code
+    .replace(/\*\*([^*]+)\*\*/g, '「$1」') // Convert bold
+    .replace(/\*([^*]+)\*/g, '『$1』') // Convert italics
+    .replace(/~~([^~]+)~~/g, '＿$1＿') // Convert strikethrough
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1［$2］') // Convert links
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '📷 $1［$2］') // Convert images
+    .replace(/^```[\s\S]*?```$/gm, match => // Handle code blocks
+      match
+        .replace(/^```.*$/m, '【Code:】')
+        .replace(/^```$/m, '【End Code】')
+    );
 
-  // Format sections with proper markdown
-  const formattedSections = sections.map(section => {
-    section = section.trim()
-
-    // Check if it's a numbered point
-    if (/^\d\.\s/.test(section)) {
-      return section // Keep the numbering as is
-    }
-
-    // Check if it's a section title
-    const titleMatch = section.match(/^(The\s(?:Hook|Struggle|Lessons|Reflection|Advice|Beginning|Closing)):/i)
-    if (titleMatch) {
-      const [, title] = titleMatch
-      return `## ${title}\n\n${section.replace(/^[^:]+:\s*/, '')}`
-    }
-
-    return section
-  })
-
-  // Combine sections with proper spacing
-  let markdownContent = `# ${title}\n\n`
-  markdownContent += formattedSections.join('\n\n')
-
-  // Format lists
-  markdownContent = markdownContent
-    .replace(/(?:^|\n)[-•]\s+/gm, '\n- ') // Convert bullet points to markdown list items
-    .replace(/(?:^|\n)(\d+)\.\s+/gm, '\n$1. ') // Format numbered lists
-
-  // Format blockquotes
-  markdownContent = markdownContent
-    .replace(/(?:^|\n)[""]([^""]+)[""]/gm, '\n> $1') // Convert quoted text to blockquotes
-
-  // Clean up spacing
-  markdownContent = markdownContent
-    .replace(/\n{3,}/g, '\n\n') // Replace multiple newlines with double newlines
-    .replace(/\s+$/gm, '') // Remove trailing spaces
-    .trim()
-
-  return markdownContent
+  // Sanitize HTML
+  return sanitizeHtml(formatted, {
+    allowedTags: [],
+    allowedAttributes: {}
+  });
 }
 
-export const parseMetadata = (content: string) => {
-  const metadataRegex = /(?:tags|category|readTime):\s*([^\n]+)/gi
-  const metadata = {
-    tags: [] as string[],
-    category: 'Personal Growth',
-    readTime: 5
-  }
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
+}
 
-  let match
-  while ((match = metadataRegex.exec(content)) !== null) {
-    const [full, value] = match
-    if (full.toLowerCase().includes('tags')) {
-      metadata.tags = value
-        .replace(/[\[\]]/g, '')
-        .split(',')
-        .map(tag => tag.trim())
-        .filter(Boolean)
-    } else if (full.toLowerCase().includes('category')) {
-      metadata.category = value.trim()
-    } else if (full.toLowerCase().includes('readtime')) {
-      const time = parseInt(value)
-      if (!isNaN(time)) {
-        metadata.readTime = time
+export function stripMarkdown(markdown: string): string {
+  return markdown
+    .replace(/^#.*$/gm, '') // Remove headers
+    .replace(/^\*.*$/gm, '') // Remove lists
+    .replace(/^-.*$/gm, '') // Remove dash lists
+    .replace(/^>.*$/gm, '') // Remove blockquotes
+    .replace(/`.*`/g, '') // Remove inline code
+    .replace(/\*\*.*\*\*/g, '') // Remove bold
+    .replace(/\*.*\*/g, '') // Remove italics
+    .replace(/~~.*~~/g, '') // Remove strikethrough
+    .replace(/\[.*\]\(.*\)/g, '') // Remove links
+    .replace(/!\[.*\]\(.*\)/g, '') // Remove images
+    .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+    .replace(/\s+/g, ' ') // Collapse whitespace
+    .trim();
+}
+
+export function countWords(text: string): number {
+  return text.trim().split(/\s+/).length;
+}
+
+export function isValidMarkdown(text: string): boolean {
+  const patterns = [
+    /^#{1,6}\s/, // Headers
+    /^\s*[-*+]\s/, // Lists
+    /^\s*\d+\.\s/, // Numbered lists
+    /^\s*>\s/, // Blockquotes
+    /\[([^\]]*)\]\(([^)]*)\)/, // Links
+    /!\[([^\]]*)\]\(([^)]*)\)/, // Images
+    /`[^`]*`/, // Inline code
+    /```[\s\S]*?```/, // Code blocks
+    /\*\*[^*]*\*\*/, // Bold
+    /\*[^*]*\*/, // Italic
+    /~~[^~]*~~/ // Strikethrough
+  ];
+
+  return patterns.some(pattern => pattern.test(text));
+}
+
+export function extractMetadata(markdown: string): Record<string, string> {
+  const metadata: Record<string, string> = {};
+  const lines = markdown.split('\n');
+  let inMetadata = false;
+
+  for (const line of lines) {
+    if (line.trim() === '---') {
+      if (!inMetadata) {
+        inMetadata = true;
+        continue;
+      } else {
+        break;
+      }
+    }
+
+    if (inMetadata) {
+      const match = line.match(/^(\w+):\s*(.*)$/);
+      if (match) {
+        metadata[match[1]] = match[2];
       }
     }
   }
 
-  // Ensure we have at least one tag
-  if (metadata.tags.length === 0) {
-    metadata.tags = ['personal']
-  }
-
-  return metadata
+  return metadata;
 }

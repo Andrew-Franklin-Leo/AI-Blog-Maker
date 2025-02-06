@@ -1,127 +1,89 @@
+import { fontFamily } from 'tailwindcss/defaultTheme';
+
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    container: {
-      center: true,
-      padding: '2rem',
-    },
     extend: {
+      fontFamily: {
+        sans: ['Inter var', ...fontFamily.sans],
+      },
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
+        },
+      },
       typography: {
         DEFAULT: {
           css: {
-            color: '#333',
-            maxWidth: 'none',
-            h1: {
-              color: '#1a202c',
-              fontWeight: '800',
-              fontSize: '2.25em',
-              marginBottom: '1em',
-            },
-            h2: {
-              color: '#2d3748',
-              fontWeight: '700',
-              fontSize: '1.5em',
-              marginTop: '2em',
-              marginBottom: '1em',
-            },
-            h3: {
-              color: '#2d3748',
-              fontWeight: '600',
-              fontSize: '1.25em',
-              marginTop: '1.6em',
-              marginBottom: '0.6em',
-            },
-            p: {
-              marginTop: '1.25em',
-              marginBottom: '1.25em',
+            maxWidth: '65ch',
+            color: 'var(--tw-prose-body)',
+            '[class~="lead"]': {
+              color: 'var(--tw-prose-lead)',
             },
             a: {
-              color: '#3182ce',
-              textDecoration: 'none',
-              '&:hover': {
-                textDecoration: 'underline',
-              },
+              color: 'var(--tw-prose-links)',
+              textDecoration: 'underline',
+              fontWeight: '500',
+            },
+            strong: {
+              color: 'var(--tw-prose-bold)',
+              fontWeight: '600',
+            },
+            'ol[type="A"]': {
+              '--list-counter-style': 'upper-alpha',
+            },
+            'ol[type="a"]': {
+              '--list-counter-style': 'lower-alpha',
+            },
+            'ol[type="A" s]': {
+              '--list-counter-style': 'upper-alpha',
+            },
+            'ol[type="a" s]': {
+              '--list-counter-style': 'lower-alpha',
+            },
+            'ol[type="I"]': {
+              '--list-counter-style': 'upper-roman',
+            },
+            'ol[type="i"]': {
+              '--list-counter-style': 'lower-roman',
+            },
+            'ol[type="I" s]': {
+              '--list-counter-style': 'upper-roman',
+            },
+            'ol[type="i" s]': {
+              '--list-counter-style': 'lower-roman',
+            },
+            'ol[type="1"]': {
+              '--list-counter-style': 'decimal',
+            },
+            'ol > li': {
+              position: 'relative',
+            },
+            'ol > li::before': {
+              content: 'counter(list-item, var(--list-counter-style, decimal)) "."',
+              position: 'absolute',
+              fontWeight: '400',
+              color: 'var(--tw-prose-counters)',
             },
             'ul > li': {
               position: 'relative',
-              paddingLeft: '1.75em',
-              '&::before': {
-                content: '""',
-                width: '0.5em',
-                height: '0.5em',
-                borderRadius: '50%',
-                backgroundColor: '#cbd5e0',
-                position: 'absolute',
-                left: '0.25em',
-                top: '0.6875em',
-              },
             },
-            'ol > li': {
-              counterIncrement: 'list-counter',
-              position: 'relative',
-              paddingLeft: '1.75em',
-              '&::before': {
-                content: 'counter(list-counter) "."',
-                position: 'absolute',
-                fontWeight: '400',
-                left: '0',
-                color: '#718096',
-              },
-            },
-            blockquote: {
-              fontWeight: '500',
-              fontStyle: 'italic',
-              color: '#4a5568',
-              borderLeftWidth: '0.25rem',
-              borderLeftColor: '#edf2f7',
-              quotes: '"\\201C""\\201D""\\2018""\\2019"',
-              marginTop: '1.6em',
-              marginBottom: '1.6em',
-              paddingLeft: '1em',
-            },
-            code: {
-              color: '#805ad5',
-              fontWeight: '600',
-              fontSize: '0.875em',
-            },
-            pre: {
-              color: '#e2e8f0',
-              backgroundColor: '#2d3748',
-              overflowX: 'auto',
-              fontSize: '0.875em',
-              lineHeight: '1.7142857',
-              marginTop: '1.7142857em',
-              marginBottom: '1.7142857em',
-              borderRadius: '0.375rem',
-              paddingTop: '0.8571429em',
-              paddingRight: '1.1428571em',
-              paddingBottom: '0.8571429em',
-              paddingLeft: '1.1428571em',
-            },
-          },
-        },
-        dark: {
-          css: {
-            color: '#e2e8f0',
-            h1: {
-              color: '#f7fafc',
-            },
-            h2: {
-              color: '#f7fafc',
-            },
-            h3: {
-              color: '#f7fafc',
-            },
-            blockquote: {
-              color: '#e2e8f0',
-              borderLeftColor: '#2d3748',
-            },
-            a: {
-              color: '#90cdf4',
+            'ul > li::before': {
+              content: '""',
+              position: 'absolute',
+              backgroundColor: 'var(--tw-prose-bullets)',
+              borderRadius: '50%',
             },
           },
         },
@@ -129,7 +91,6 @@ export default {
     },
   },
   plugins: [
-    require('@tailwindcss/typography'),
+    await import('@tailwindcss/typography').then(m => m.default),
   ],
-  darkMode: 'class',
-}
+};

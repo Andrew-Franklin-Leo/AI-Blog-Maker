@@ -1,127 +1,101 @@
-interface ErrorDetails {
-  message: string
-  stack?: string
-  componentStack?: string
-  metadata?: Record<string, any>
+interface ErrorMetadata {
+  componentStack?: string;
+  [key: string]: unknown;
 }
 
 class ErrorMonitor {
-  private static instance: ErrorMonitor
-  private isInitialized: boolean = false
+  private static instance: ErrorMonitor;
+  private lastError: Error | null = null;
+  private lastErrorTime: number = 0;
+  private errorCount: number = 0;
 
-  private constructor() {}
+  private constructor() {
+    window.addEventListener('error', this.handleWindowError.bind(this));
+    window.addEventListener('unhandledrejection', this.handlePromiseRejection.bind(this));
+  }
 
-  public static getInstance(): ErrorMonitor {
+  static getInstance(): ErrorMonitor {
     if (!ErrorMonitor.instance) {
-      ErrorMonitor.instance = new ErrorMonitor()
+      ErrorMonitor.instance = new ErrorMonitor();
     }
-    return ErrorMonitor.instance
+    return ErrorMonitor.instance;
   }
 
-  public init() {
-    if (this.isInitialized) {
-      return
-    }
-
-    // Set up global error handler
-    window.onerror = (message, source, lineno, colno, error) => {
-      this.logError({
-        message: message.toString(),
-        stack: error?.stack,
-        metadata: {
-          source,
-          lineno,
-          colno
-        }
-      })
-    }
-
-    // Set up unhandled rejection handler
-    window.onunhandledrejection = (event) => {
-      this.logError({
-        message: 'Unhandled Promise Rejection',
-        stack: event.reason?.stack,
-        metadata: {
-          reason: event.reason
-        }
-      })
-    }
-
-    this.isInitialized = true
+  private handleWindowError(event: ErrorEvent): void {
+    this.captureError(event.error || new Error(event.message));
   }
 
-  public logError(details: ErrorDetails) {
-    // Log to console in development
+  private handlePromiseRejection(event: PromiseRejectionEvent): void {
+    const error = event.reason instanceof Error 
+      ? event.reason 
+      : new Error(String(event.reason));
+    this.captureError(error);
+  }
+
+  captureError(error: Error, metadata: ErrorMetadata = {}): void {
+    // Prevent duplicate error reports within 5 seconds
+    const now = Date.now();
+    if (
+      this.lastError?.message === error.message &&
+      now - this.lastErrorTime < 5000
+    ) {
+      return;
+    }
+
+    // Update error tracking
+    this.lastError = error;
+    this.lastErrorTime = now;
+    this.errorCount++;
+
+    // Prepare error report
+    const errorReport = {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+      url: window.location.href,
+      userAgent: navigator.userAgent,
+      metadata: {
+        ...metadata,
+        errorCount: this.errorCount,
+      },
+    };
+
+    // Log error in development
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error logged:', details)
-      return
+      console.error('Error captured:', errorReport);
     }
 
-    // In production, you would send this to your error tracking service
-    // Example with a hypothetical error tracking service:
-    /*
+    // In production, send to error monitoring service
+    if (process.env.NODE_ENV === 'production') {
+      this.sendErrorReport(errorReport);
+    }
+  }
+
+  private async sendErrorReport(report: Record<string, unknown>): Promise<void> {
     try {
-      fetch('/api/log-error', {
+      const response = await fetch('/api/log-error', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          timestamp: new Date().toISOString(),
-          environment: process.env.NODE_ENV,
-          ...details,
-          // Add any other relevant information
-          url: window.location.href,
-          userAgent: navigator.userAgent,
-        }),
-      })
-    } catch (e) {
-      // Fallback to console in case the logging endpoint fails
-      console.error('Failed to log error:', e)
-      console.error('Original error:', details)
+        body: JSON.stringify(report),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to send error report:', await response.text());
+      }
+    } catch (err) {
+      // Fail silently in production, log in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to send error report:', err);
+      }
     }
-    */
-  }
-
-  public logWarning(message: string, metadata?: Record<string, any>) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('Warning logged:', message, metadata)
-      return
-    }
-
-    // In production, you might want to log warnings differently
-    // this.logToService({ level: 'warning', message, metadata })
-  }
-
-  public logInfo(message: string, metadata?: Record<string, any>) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Info logged:', message, metadata)
-      return
-    }
-
-    // In production, you might want to log info differently
-    // this.logToService({ level: 'info', message, metadata })
-  }
-
-  public setGlobalMetadata(metadata: Record<string, any>) {
-    // Add any global metadata that should be included with all error reports
-    // For example: user information, app version, etc.
-    // this.globalMetadata = metadata
   }
 }
 
-export const errorMonitor = ErrorMonitor.getInstance()
+// Export singleton instance methods
+const errorMonitor = ErrorMonitor.getInstance();
 
-// Helper hooks and utilities
-export const initErrorMonitoring = () => {
-  errorMonitor.init()
-  
-  // Set up any global metadata
-  errorMonitor.setGlobalMetadata({
-    appVersion: import.meta.env.VITE_APP_VERSION || 'unknown',
-    // Add any other global metadata
-  })
-}
-
-// Export types for better developer experience
-export type { ErrorDetails }
+export const captureError = (error: Error, metadata?: ErrorMetadata): void => {
+  errorMonitor.captureError(error, metadata);
+};

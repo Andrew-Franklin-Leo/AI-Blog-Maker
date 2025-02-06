@@ -1,46 +1,35 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom';
 
-const Navbar = () => {
-  const location = useLocation()
-
-  const isActive = (path: string) => {
-    return location.pathname === path
-      ? 'text-blue-600 dark:text-blue-400'
-      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-  }
-
+export default function Navbar() {
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white">
-            Li Xia's Blog
+    <nav className="bg-gray-800 text-white p-4">
+      <div className="container mx-auto flex justify-between items-center">
+        <div className="flex items-center">
+          <Link to="/" className="text-xl font-bold">
+            Li Xia&apos;s Blog
           </Link>
-
-          <div className="flex space-x-4">
-            <Link
-              to="/"
-              className={`${isActive('/')} transition-colors duration-200`}
-            >
-              Home
-            </Link>
-            <Link
-              to="/create"
-              className={`${isActive('/create')} transition-colors duration-200`}
-            >
-              Create Post
-            </Link>
-            <Link
-              to="/test"
-              className={`${isActive('/test')} transition-colors duration-200`}
-            >
-              Test AI
-            </Link>
-          </div>
+        </div>
+        <div className="flex space-x-4">
+          <Link
+            to="/"
+            className="hover:text-gray-300 transition-colors duration-200"
+          >
+            Home
+          </Link>
+          <Link
+            to="/create"
+            className="hover:text-gray-300 transition-colors duration-200"
+          >
+            Create Post
+          </Link>
+          <Link
+            to="/test"
+            className="hover:text-gray-300 transition-colors duration-200"
+          >
+            Test AI
+          </Link>
         </div>
       </div>
     </nav>
-  )
+  );
 }
-
-export default Navbar

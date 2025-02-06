@@ -1,65 +1,52 @@
-import { useState, useEffect } from 'react'
-
-interface Toast {
-  id: string
-  message: string
-  type: 'success' | 'error' | 'info'
-}
+import { useState, useEffect } from 'react';
+import { Toast } from './toast-utils';
 
 interface ToasterProps {
-  duration?: number
+  autoClose?: number;
+  onToastAdd?: (toast: Toast) => void;
 }
 
-export const useToast = () => {
-  const [toasts, setToasts] = useState<Toast[]>([])
-
-  const addToast = (message: string, type: Toast['type'] = 'info') => {
-    const id = Math.random().toString(36).substr(2, 9)
-    setToasts((prev) => [...prev, { id, message, type }])
-  }
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
-  }
-
-  return { addToast, removeToast }
-}
-
-export const Toaster = ({ duration = 3000 }: ToasterProps) => {
-  const [toasts, setToasts] = useState<Toast[]>([])
+const Toaster = ({ autoClose = 3000, onToastAdd }: ToasterProps) => {
+  const [activeToasts, setActiveToasts] = useState<Toast[]>([]);
 
   useEffect(() => {
-    if (toasts.length > 0) {
-      const timer = setTimeout(() => {
-        setToasts((prev) => prev.slice(1))
-      }, duration)
-      return () => clearTimeout(timer)
-    }
-  }, [toasts, duration])
+    const interval = setInterval(() => {
+      setActiveToasts((currentToasts) =>
+        currentToasts.filter((toast) => toast.id !== currentToasts[0]?.id)
+      );
+    }, autoClose);
 
-  const getToastStyles = (type: Toast['type']) => {
-    switch (type) {
-      case 'success':
-        return 'bg-green-500'
-      case 'error':
-        return 'bg-red-500'
-      default:
-        return 'bg-blue-500'
+    return () => clearInterval(interval);
+  }, [autoClose]);
+
+  useEffect(() => {
+    if (onToastAdd && activeToasts.length > 0) {
+      onToastAdd(activeToasts[activeToasts.length - 1]);
     }
+  }, [activeToasts, onToastAdd]);
+
+  if (activeToasts.length === 0) {
+    return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 space-y-2">
-      {toasts.map((toast) => (
+    <div className="fixed bottom-4 right-4 z-50">
+      {activeToasts.map((toast) => (
         <div
           key={toast.id}
-          className={`${getToastStyles(
-            toast.type
-          )} text-white px-4 py-2 rounded-lg shadow-lg`}
+          className={`mb-2 p-4 rounded shadow-lg text-white ${
+            toast.type === 'error'
+              ? 'bg-red-500'
+              : toast.type === 'success'
+              ? 'bg-green-500'
+              : 'bg-blue-500'
+          }`}
         >
           {toast.message}
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
+
+export default Toaster;

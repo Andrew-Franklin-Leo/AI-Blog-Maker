@@ -1,39 +1,14 @@
-import { ReactElement } from 'react';
-import { BrowserRouter } from 'react-router-dom';
 import { render, RenderOptions } from '@testing-library/react';
-import { vi } from 'vitest';
-
-// Mock Supabase client
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({
-    auth: {
-      getSession: () => ({ data: { session: null }, error: null }),
-    },
-    from: () => ({
-      select: () => ({
-        order: () => ({
-          limit: () => ({
-            data: [],
-            error: null,
-          }),
-        }),
-      }),
-    }),
-  }),
-}));
-
-const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <BrowserRouter>
-      {children}
-    </BrowserRouter>
-  );
-};
+import { ReactElement } from 'react';
+import { TestWrapper } from './test-components';
 
 const customRender = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
-) => render(ui, { wrapper: AllTheProviders, ...options });
+) => render(ui, { wrapper: TestWrapper, ...options });
 
+// re-export everything
 export * from '@testing-library/react';
+
+// override render method
 export { customRender as render };
