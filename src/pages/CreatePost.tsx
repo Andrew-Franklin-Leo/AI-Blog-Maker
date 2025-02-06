@@ -1,249 +1,141 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { generateBlogPost, analyzeContent } from '../lib/openrouter'
-import { createPost } from '../lib/supabase'
-import { useToast } from '../components/ui/Toaster'
-import { formatToMarkdown } from '../utils/markdown'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { generateContent } from '../lib/openrouter';
+import { useToast } from '../lib/toast';
 
-interface PostData {
-  title: string
-  content: string
-  metadata: {
-    tags: string[]
-    category: string
-    readTime: number
-  }
-}
-
-const CreatePost = () => {
-  const navigate = useNavigate()
-  const { addToast } = useToast()
-  const [isGenerating, setIsGenerating] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [postData, setPostData] = useState<PostData>({
-    title: '',
-    content: '',
-    metadata: {
-      tags: [],
-      category: '',
-      readTime: 0
-    }
-  })
-
-  const generatePost = async () => {
-    if (!postData.title) {
-      addToast('Please enter a title first', 'error')
-      return
-    }
-
-    setIsGenerating(true)
-    setError(null)
-
-    try {
-      const content = await generateBlogPost(postData.title)
-      console.log('Raw content:', content)
-
-      const markdownContent = formatToMarkdown(postData.title, content)
-      console.log('Formatted content:', markdownContent)
-
-      const metadata = await analyzeContent(markdownContent)
-      console.log('Content metadata:', metadata)
-
-      setPostData(prev => ({
-        ...prev,
-        content: markdownContent,
-        metadata
-      }))
-      
-      addToast('Content generated successfully', 'success')
-    } catch (error) {
-      console.error('Error in content generation:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      setError(errorMessage)
-      addToast(`Failed to generate content: ${errorMessage}`, 'error')
-    } finally {
-      setIsGenerating(false)
-    }
-  }
+export default function CreatePost() {
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [author, setAuthor] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const navigate = useNavigate();
+  const showToast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!postData.content) {
-      addToast('Please generate or enter content first', 'error')
-      return
-    }
+    e.preventDefault();
 
-    setIsSaving(true)
-    setError(null)
+    // Validate required fields
+    if (!title.trim()) {
+      showToast('Title is required', 'error');
+      return;
+    }
+    if (!content.trim()) {
+      showToast('Content is required', 'error');
+      return;
+    }
+    if (!author.trim()) {
+      showToast('Author is required', 'error');
+      return;
+    }
 
     try {
-      await createPost(
-        postData.title,
-        postData.content,
-        postData.metadata
-      )
-      
-      addToast('Post saved successfully', 'success')
-      navigate('/')
+      const { data, error } = await supabase
+        .from('posts')
+        .insert({
+          title,
+          content,
+          author,
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      showToast('Post created successfully', 'success');
+      navigate(`/post/${data.id}`);
     } catch (error) {
-      console.error('Error saving post:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      setError(errorMessage)
-      addToast(`Failed to save post: ${errorMessage}`, 'error')
-    } finally {
-      setIsSaving(false)
+      console.error('Error creating post:', error);
+      showToast('Error creating post', 'error');
     }
-  }
+  };
+
+  const handleGenerate = async () => {
+    if (!title.trim()) {
+      showToast('Please enter a title first', 'error');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await generateContent(title);
+      const generatedContent = response.choices[0].message.content;
+      setContent(generatedContent);
+      showToast('Content generated successfully', 'success');
+    } catch (error) {
+      console.error('Error generating content:', error);
+      showToast('Error generating content', 'error');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-        Create New Blog Post
-      </h1>
-
-      {error && (
-        <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4 mb-6">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-red-500">⚠️</span>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700 dark:text-red-200">{error}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Create New Post</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label
-            htmlFor="title"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-          >
-            Post Title
+          <label htmlFor="title" className="block text-sm font-medium text-gray-700">
+            Title
           </label>
           <input
-            type="text"
             id="title"
-            value={postData.title}
-            onChange={(e) =>
-              setPostData((prev) => ({ ...prev, title: e.target.value }))
-            }
-            className="input-field mt-1"
-            placeholder="Enter your post title"
+            type="text"
+            name="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-
-        <div className="flex justify-between items-center">
+        <div>
+          <label htmlFor="author" className="block text-sm font-medium text-gray-700">
+            Author
+          </label>
+          <input
+            id="author"
+            type="text"
+            name="author"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            required
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+            Content
+          </label>
+          <div className="mt-1 relative">
+            <textarea
+              id="content"
+              name="content"
+              rows={10}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              required
+              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            />
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={isGenerating}
+              className="absolute top-2 right-2 inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {isGenerating ? 'Generating...' : 'Generate'}
+            </button>
+          </div>
+        </div>
+        <div className="flex justify-end">
           <button
-            type="button"
-            onClick={generatePost}
-            disabled={!postData.title || isGenerating}
-            className={`btn-primary ${
-              isGenerating || !postData.title ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
+            type="submit"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
-            {isGenerating ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                Generating...
-              </div>
-            ) : (
-              <>
-                <span className="mr-2">✨</span>
-                Generate with AI
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/')}
-            className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-          >
-            Cancel
+            Save Post
           </button>
         </div>
-
-        {postData.content && (
-          <>
-            <div className="space-y-4">
-              <div>
-                <label
-                  htmlFor="content"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-                >
-                  Content (Markdown)
-                </label>
-                <textarea
-                  id="content"
-                  value={postData.content}
-                  onChange={(e) =>
-                    setPostData((prev) => ({ ...prev, content: e.target.value }))
-                  }
-                  className="input-field font-mono"
-                  rows={10}
-                  placeholder="Your post content will appear here"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Preview
-                </label>
-                <div className="prose dark:prose-dark max-w-none bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {postData.content}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                {postData.metadata.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {postData.metadata.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-2 py-1 rounded text-sm"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <button
-                type="submit"
-                disabled={isSaving}
-                className={`btn-primary ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {isSaving ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                    Saving...
-                  </div>
-                ) : (
-                  <>
-                    <span className="mr-2">📝</span>
-                    Publish Post
-                  </>
-                )}
-              </button>
-            </div>
-          </>
-        )}
       </form>
     </div>
-  )
+  );
 }
-
-export default CreatePost

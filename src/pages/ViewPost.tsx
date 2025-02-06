@@ -1,136 +1,112 @@
-import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { getPost } from '../lib/supabase'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useToast } from '../lib/toast';
+import { useState, useEffect } from 'react';
+import { formatDate } from '../utils/date';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
+import { Post } from '../types/post';
 
-interface Post {
-  id: string
-  title: string
-  content: string
-  created_at: string
-  metadata: {
-    tags: string[]
-    category: string
-    readTime: number
-  }
-}
-
-const ViewPost = () => {
-  const { id } = useParams<{ id: string }>()
-  const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default function ViewPost() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [post, setPost] = useState<Post | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const showToast = useToast();
 
   useEffect(() => {
-    const loadPost = async () => {
-      if (!id) return
+    fetchPost();
+  }, [id]);
 
-      try {
-        const data = await getPost(id)
-        if (data) {
-          setPost(data as Post)
-        } else {
-          setError('Post not found')
-        }
-      } catch (err) {
-        console.error('Error loading post:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load post')
-      } finally {
-        setLoading(false)
-      }
+  const fetchPost = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+      setPost(data);
+    } catch (error) {
+      showToast('Failed to load post', 'error');
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    loadPost()
-  }, [id])
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this post?')) return;
 
-  if (loading) {
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      showToast('Post deleted successfully', 'success');
+      navigate('/');
+    } catch (error) {
+      showToast('Failed to delete post', 'error');
+      console.error('Error:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const renderContent = (content: string) => {
+    const parser = new marked.Parser();
+    const lexer = new marked.Lexer();
+    const tokens = lexer.lex(content);
+    const html = parser.parse(tokens);
+    const sanitizedHtml = DOMPurify.sanitize(html);
+    return { __html: sanitizedHtml };
+  };
+
+  if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          </div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-          </div>
-        </div>
+      <div className="max-w-4xl mx-auto p-6">
+        <p>Loading...</p>
       </div>
-    )
+    );
   }
 
-  if (error || !post) {
+  if (!post) {
     return (
-      <div className="max-w-4xl mx-auto py-8">
-        <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-red-500">⚠️</span>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                Error
-              </h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>{error || 'Post not found'}</p>
-              </div>
-              <div className="mt-4">
-                <Link
-                  to="/"
-                  className="text-sm font-medium text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100"
-                >
-                  ← Back to Posts
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="max-w-4xl mx-auto p-6">
+        <p>Post not found</p>
       </div>
-    )
+    );
   }
 
   return (
-    <article className="max-w-4xl mx-auto py-8">
-      <header className="mb-8">
-        <Link
-          to="/"
-          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-4 inline-block"
-        >
-          ← Back to Posts
-        </Link>
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
-          {post.title}
-        </h1>
-        <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-          <span>{new Date(post.created_at).toLocaleDateString()}</span>
-          <span>•</span>
-          <span>{post.metadata.readTime} min read</span>
-          <span>•</span>
-          <span>{post.metadata.category}</span>
+    <div className="max-w-4xl mx-auto p-6">
+      <article className="prose lg:prose-xl">
+        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+        <div className="mb-6 text-gray-600">
+          <p>By {post.author}</p>
+          <p>{formatDate(post.created_at)}</p>
         </div>
-        {post.metadata.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-4">
-            {post.metadata.tags.map((tag) => (
-              <span
-                key={tag}
-                className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-2 py-1 rounded text-sm"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </header>
-
-      <div className="prose dark:prose-dark max-w-none">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{post.content}</ReactMarkdown>
+        <div 
+          className="post-content"
+          dangerouslySetInnerHTML={renderContent(post.content)}
+        />
+      </article>
+      <div className="mt-6">
+        <button
+          onClick={handleDelete}
+          disabled={isDeleting}
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+        >
+          {isDeleting ? 'Deleting...' : 'Delete Post'}
+        </button>
       </div>
-    </article>
-  )
+    </div>
+  );
 }
-
-export default ViewPost

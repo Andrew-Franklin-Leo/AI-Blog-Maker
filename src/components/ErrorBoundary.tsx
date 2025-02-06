@@ -25,13 +25,13 @@ export default class ErrorBoundary extends Component<
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     captureError(error, {
-      componentStack: errorInfo.componentStack
+      componentStack: errorInfo.componentStack || ''
     });
   }
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -49,7 +49,7 @@ export default class ErrorBoundary extends Component<
             >
               Refresh Page
             </button>
-            {process.env.NODE_ENV === 'development' && (
+            {process.env['NODE_ENV'] === 'development' && (
               <pre className="mt-4 p-4 bg-gray-100 rounded text-sm overflow-auto">
                 {this.state.errorMessage}
               </pre>

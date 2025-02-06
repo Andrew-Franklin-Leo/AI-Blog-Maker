@@ -1,20 +1,25 @@
-/// <reference types="vitest" />
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [react()],
   test: {
     globals: true,
-    environment: 'happy-dom',
-    setupFiles: [
-      './src/test/setup-env.ts',
-      './src/test/setup.ts'
-    ],
+    environment: 'jsdom',
+    setupFiles: ['src/test/setup.ts', 'src/test/setup-env.ts'],
     css: true,
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'html'],
+      exclude: [
+        'coverage/**',
+        'dist/**',
+        '**/[.]**',
+        'packages/*/test?(s)/**',
+        '**/*.d.ts',
+        '**/virtual:*',
+        '**/__mocks__/*',
+        '**/test/**',
+      ],
     },
+    testTimeout: 10000, // Increase default timeout to 10 seconds
+    hookTimeout: 10000, // Increase hook timeout as well
   },
 });

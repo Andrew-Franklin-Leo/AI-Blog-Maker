@@ -61,12 +61,12 @@ class ErrorMonitor {
     };
 
     // Log error in development
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env['NODE_ENV'] === 'development') {
       console.error('Error captured:', errorReport);
     }
 
     // In production, send to error monitoring service
-    if (process.env.NODE_ENV === 'production') {
+    if (process.env['NODE_ENV'] === 'production') {
       this.sendErrorReport(errorReport);
     }
   }
@@ -86,7 +86,7 @@ class ErrorMonitor {
       }
     } catch (err) {
       // Fail silently in production, log in development
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env['NODE_ENV'] === 'development') {
         console.error('Failed to send error report:', err);
       }
     }

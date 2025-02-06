@@ -1,44 +1,46 @@
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
-const testOpenRouterConnection = async () => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load environment variables from .env file
+dotenv.config({ path: join(__dirname, '../../.env') });
+
+const API_KEY = process.env['VITE_OPENROUTER_API_KEY'];
+
+if (!API_KEY) {
+  throw new Error('VITE_OPENROUTER_API_KEY environment variable is required');
+}
+
+export async function testOpenRouterConnection() {
   try {
-    console.log('Testing OpenRouter connection...');
-    
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-        'HTTP-Referer': window.location.origin
+        'HTTP-Referer': 'https://your-site.com',
+        'Authorization': `Bearer ${API_KEY as string}`
       },
       body: JSON.stringify({
-        model: 'deepseek/deepseek-r1:free',
+        model: 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'user',
-            content: 'Say hello'
+            content: 'Hello! Can you help me test the OpenRouter API?'
           }
         ]
       })
     });
 
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-      throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    console.log('API Response:', JSON.stringify(data, null, 2));
-
     return data;
   } catch (error) {
-    console.error('Test failed:', error);
     throw error;
   }
-};
-
-export { testOpenRouterConnection };
+}

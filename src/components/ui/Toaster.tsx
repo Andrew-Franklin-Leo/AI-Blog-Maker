@@ -1,52 +1,41 @@
-import { useState, useEffect } from 'react';
-import { Toast } from './toast-utils';
+import React, { useEffect } from 'react';
 
-interface ToasterProps {
-  autoClose?: number;
-  onToastAdd?: (toast: Toast) => void;
+export interface ToastProps {
+  message: string;
+  type: 'success' | 'error' | 'info';
+  onClose: () => void;
 }
 
-const Toaster = ({ autoClose = 3000, onToastAdd }: ToasterProps) => {
-  const [activeToasts, setActiveToasts] = useState<Toast[]>([]);
-
+export const Toast: React.FC<ToastProps> = ({ message, type, onClose }) => {
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveToasts((currentToasts) =>
-        currentToasts.filter((toast) => toast.id !== currentToasts[0]?.id)
-      );
-    }, autoClose);
+    const timer = setTimeout(() => {
+      onClose();
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [onClose]);
 
-    return () => clearInterval(interval);
-  }, [autoClose]);
-
-  useEffect(() => {
-    if (onToastAdd && activeToasts.length > 0) {
-      onToastAdd(activeToasts[activeToasts.length - 1]);
-    }
-  }, [activeToasts, onToastAdd]);
-
-  if (activeToasts.length === 0) {
-    return null;
-  }
+  const baseClasses = 'rounded-md p-4 mb-4 shadow-lg transition-all duration-300';
+  const typeClasses = {
+    success: 'bg-green-500 text-white',
+    error: 'bg-red-500 text-white',
+    info: 'bg-blue-500 text-white',
+  };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      {activeToasts.map((toast) => (
-        <div
-          key={toast.id}
-          className={`mb-2 p-4 rounded shadow-lg text-white ${
-            toast.type === 'error'
-              ? 'bg-red-500'
-              : toast.type === 'success'
-              ? 'bg-green-500'
-              : 'bg-blue-500'
-          }`}
+    <div
+      role="alert"
+      className={`${baseClasses} ${typeClasses[type]}`}
+    >
+      <div className="flex justify-between items-center">
+        <p className="text-sm font-medium">{message}</p>
+        <button
+          onClick={onClose}
+          className="ml-4 text-white hover:opacity-75"
+          aria-label="Close"
         >
-          {toast.message}
-        </div>
-      ))}
+          ×
+        </button>
+      </div>
     </div>
   );
 };
-
-export default Toaster;

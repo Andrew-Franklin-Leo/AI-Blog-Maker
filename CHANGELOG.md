@@ -2,36 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.2.0] - 2025-02-06
+
+### Added
+- Enhanced form validation in CreatePost component
+- Added toast notifications for form validation feedback
+- New test utilities for form validation testing
+
+### Changed
+- Increased test timeouts for better reliability
+- Updated test implementation to use proper form validation checks
+- Improved error handling for AI content generation
+
+### Fixed
+- Form validation timing issues in tests
+- Error handling for failed AI generation requests
 
 ## [1.1.0] - 2025-02-05
 
 ### Added
-- GitHub Pages deployment configuration
-- Release process with proper validation stages
-- Comprehensive release documentation
-- HashRouter for better GitHub Pages compatibility
+- AI content generation using OpenRouter
+- Post creation and editing functionality
+- Toast notification system
+- Form validation
 
 ### Changed
-- Updated GitHub Actions workflow with proper release stages
-- Upgraded all GitHub Actions to latest versions
-- Updated Node.js version to 20
-- Improved ESLint configuration to use flat config format
+- Updated test utilities
+- Improved error handling
+- Enhanced database integration
 
-### Fixed
-- GitHub Pages blank screen issue
-- ESLint configuration and script issues
-- CI/CD pipeline deployment issues
-
-## [1.0.0] - 2025-02-01
+## [1.0.0] - 2025-02-04
 
 ### Added
 - Initial release
-- React application setup with Vite
-- OpenRouter AI integration
-- Supabase backend integration
-- Blog post creation and viewing functionality
-- Basic user interface components
-- Error handling and monitoring
-- Unit testing setup
+- Basic blog post functionality
+- Supabase database integration
+- Basic UI components

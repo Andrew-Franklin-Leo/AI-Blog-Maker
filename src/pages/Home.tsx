@@ -1,137 +1,66 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { getPosts } from '../lib/supabase'
-import PostCard from '../components/PostCard'
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import PostCard from '../components/PostCard';
+import { useToast } from '../lib/toast';
+import { Post } from '../types/post';
 
-interface Post {
-  id: string
-  title: string
-  content: string
-  created_at: string
-  metadata: {
-    tags: string[]
-    category: string
-    readTime: number
-  }
-}
-
-const Home = () => {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default function Home() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const showToast = useToast();
 
   useEffect(() => {
-    const loadPosts = async () => {
-      try {
-        const data = await getPosts()
-        setPosts(data as Post[])
-      } catch (err) {
-        console.error('Error loading posts:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load posts')
-      } finally {
-        setLoading(false)
-      }
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setPosts(data || []);
+    } catch (error) {
+      showToast('Failed to load posts', 'error');
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    loadPosts()
-  }, [])
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Blog Posts
-          </h1>
-          <div className="w-32 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-        </div>
-        <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 animate-pulse"
-            >
-              <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-4" />
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded" />
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="max-w-4xl mx-auto p-6">
+        <h1 className="text-3xl font-bold mb-6">Loading posts...</h1>
       </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <span className="text-red-500">⚠️</span>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                Error
-              </h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                <p>{error}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Blog Posts
-        </h1>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Blog Posts</h1>
         <Link
           to="/create"
-          className="btn-primary flex items-center space-x-2"
+          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
-          <span>✍️</span>
-          <span>Write Your Story</span>
+          Create New Post
         </Link>
       </div>
 
       {posts.length === 0 ? (
-        <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No posts yet
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
-            Be the first to share your story!
-          </p>
-          <Link
-            to="/create"
-            className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-          >
-            <span>Create a post</span>
-            <span>→</span>
-          </Link>
-        </div>
+        <p className="text-gray-600">No posts yet. Create your first post!</p>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              id={post.id}
-              title={post.title}
-              content={post.content}
-              created_at={post.created_at}
-              metadata={post.metadata}
-            />
+            <PostCard key={post.id} post={post} />
           ))}
         </div>
       )}
     </div>
-  )
+  );
 }
-
-export default Home
