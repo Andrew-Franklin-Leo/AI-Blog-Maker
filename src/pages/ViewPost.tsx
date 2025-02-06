@@ -1,112 +1,115 @@
-import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
-import { useToast } from '../lib/toast';
-import { useState, useEffect } from 'react';
-import { formatDate } from '../utils/date';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
 import { marked } from 'marked';
-import DOMPurify from 'dompurify';
+import { supabase } from '../lib/supabase';
 import { Post } from '../types/post';
+import { formatDate } from '../utils/date';
+import { useToast } from '../components/ui/hooks/useToast';
 
-export default function ViewPost() {
+export const ViewPost: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const showToast = useToast();
+  const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
 
   useEffect(() => {
-    fetchPost();
-  }, [id]);
+    const fetchPost = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('id', id)
+          .single();
 
-  const fetchPost = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('id', id)
-        .single();
+        if (error) throw error;
+        setPost(data);
+      } catch (error) {
+        console.error('Error fetching post:', error);
+        showToast({
+          title: 'Error',
+          description: 'Failed to load the blog post',
+          type: 'error',
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-      if (error) throw error;
-      setPost(data);
-    } catch (error) {
-      showToast('Failed to load post', 'error');
-      console.error('Error:', error);
-    } finally {
-      setIsLoading(false);
+    if (id) {
+      fetchPost();
     }
-  };
+  }, [id, showToast]);
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this post?')) return;
-
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase
-        .from('posts')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      showToast('Post deleted successfully', 'success');
-      navigate('/');
-    } catch (error) {
-      showToast('Failed to delete post', 'error');
-      console.error('Error:', error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const renderContent = (content: string) => {
-    const parser = new marked.Parser();
-    const lexer = new marked.Lexer();
-    const tokens = lexer.lex(content);
-    const html = parser.parse(tokens);
-    const sanitizedHtml = DOMPurify.sanitize(html);
-    return { __html: sanitizedHtml };
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <p>Loading...</p>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="loading-spinner" />
       </div>
     );
   }
 
   if (!post) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <p>Post not found</p>
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            Post Not Found
+          </h1>
+          <p className="text-gray-600 mb-6">
+            The blog post you're looking for doesn't exist or has been removed.
+          </p>
+          <Link
+            to="/"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+          >
+            Return Home
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <article className="prose lg:prose-xl">
-        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
-        <div className="mb-6 text-gray-600">
-          <p>By {post.author}</p>
-          <p>{formatDate(post.created_at)}</p>
+    <article className="max-w-4xl mx-auto px-4">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">{post.title}</h1>
+        <div className="flex items-center text-sm text-gray-600">
+          <span>{post.author}</span>
+          <span className="mx-2">•</span>
+          <time dateTime={post.created_at}>
+            {formatDate(post.created_at)}
+          </time>
+          {post.ai_generated && (
+            <>
+              <span className="mx-2">•</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                AI Generated
+              </span>
+            </>
+          )}
         </div>
-        <div 
-          className="post-content"
-          dangerouslySetInnerHTML={renderContent(post.content)}
-        />
-      </article>
-      <div className="mt-6">
-        <button
-          onClick={handleDelete}
-          disabled={isDeleting}
-          className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
+      </header>
+
+      <div
+        className="prose max-w-none"
+        dangerouslySetInnerHTML={{ __html: marked(post.content) }}
+      />
+
+      {post.ai_generated && post.ai_prompt && (
+        <div className="mt-12 p-4 bg-gray-50 rounded-lg">
+          <h2 className="text-lg font-semibold mb-2">AI Prompt Used</h2>
+          <p className="text-gray-600">{post.ai_prompt}</p>
+        </div>
+      )}
+
+      <div className="mt-12 pt-8 border-t">
+        <Link
+          to="/"
+          className="text-blue-600 hover:text-blue-700 font-medium"
         >
-          {isDeleting ? 'Deleting...' : 'Delete Post'}
-        </button>
+          ← Back to All Posts
+        </Link>
       </div>
-    </div>
+    </article>
   );
-}
+};

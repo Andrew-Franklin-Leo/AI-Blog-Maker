@@ -1,3 +1,11 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export interface Database {
   public: {
     Tables: {
@@ -5,42 +13,43 @@ export interface Database {
         Row: {
           id: string;
           created_at: string;
+          updated_at: string;
           title: string;
           content: string;
           author: string;
-          is_published: boolean;
+          ai_generated: boolean;
+          ai_prompt?: string | null;
         };
         Insert: {
           id?: string;
           created_at?: string;
+          updated_at?: string;
           title: string;
           content: string;
           author: string;
-          is_published?: boolean;
+          ai_generated?: boolean;
+          ai_prompt?: string | null;
         };
         Update: {
           id?: string;
           created_at?: string;
+          updated_at?: string;
           title?: string;
           content?: string;
           author?: string;
-          is_published?: boolean;
+          ai_generated?: boolean;
+          ai_prompt?: string | null;
         };
       };
     };
     Views: {
-      [key: string]: {
-        Row: Record<string, unknown>;
-      };
+      [_ in never]: never;
     };
     Functions: {
-      [key: string]: {
-        Args: Record<string, unknown>;
-        Returns: unknown;
-      };
+      [_ in never]: never;
     };
     Enums: {
-      [key: string]: string[];
+      [_ in never]: never;
     };
   };
 }

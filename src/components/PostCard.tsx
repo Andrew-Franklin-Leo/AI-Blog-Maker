@@ -1,63 +1,39 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
+import { Post } from '../types/post';
 import { formatDate } from '../utils/date';
-
-export interface Post {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  created_at: string;
-  is_published: boolean;
-}
 
 interface PostCardProps {
   post: Post;
 }
 
-const MAX_CONTENT_LENGTH = 200;
-
-export default function PostCard({ post }: PostCardProps) {
-  const truncatedContent = post.content
-    ? post.content.length > MAX_CONTENT_LENGTH
-      ? `${post.content.slice(0, MAX_CONTENT_LENGTH)}...`
-      : post.content
-    : 'No content available';
+export const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const previewText = post.content.slice(0, 200) + (post.content.length > 200 ? '...' : '');
 
   return (
-    <article className="bg-white rounded-lg shadow-md p-6 mb-4 hover:shadow-lg transition-shadow">
-      <header className="mb-4">
-        <Link 
-          to={`/post/${post.id}`}
-          className="text-2xl font-bold text-blue-600 hover:text-blue-800"
-        >
+    <article className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+      <Link to={`/post/${post.id}`} className="block">
+        <h2 className="text-xl font-semibold text-gray-900 mb-2 hover:text-blue-600">
           {post.title}
-        </Link>
-        <div className="flex items-center mt-2 text-gray-600 text-sm">
-          <span>By {post.author}</span>
+        </h2>
+        <div className="flex items-center text-sm text-gray-600 mb-3">
+          <span>{post.author}</span>
           <span className="mx-2">•</span>
-          <time>{formatDate(post.created_at)}</time>
-          {!post.is_published && (
+          <time dateTime={post.created_at}>{formatDate(post.created_at)}</time>
+          {post.ai_generated && (
             <>
               <span className="mx-2">•</span>
-              <span className="text-yellow-600 font-medium">Draft</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                AI Generated
+              </span>
             </>
           )}
         </div>
-      </header>
-      <div 
-        className="text-gray-700 mb-4"
-        data-testid="post-content"
-      >
-        {truncatedContent}
-      </div>
-      <footer className="flex justify-end">
-        <Link
-          to={`/post/${post.id}`}
-          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-        >
+        <p className="text-gray-600 line-clamp-3">{previewText}</p>
+        <div className="mt-4 text-blue-600 hover:text-blue-700 text-sm font-medium">
           Read more →
-        </Link>
-      </footer>
+        </div>
+      </Link>
     </article>
   );
-}
+};

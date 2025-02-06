@@ -1,32 +1,19 @@
+import React from 'react';
+import { render, screen } from './test/test-utils';
 import { describe, it, expect } from 'vitest';
-import { render, screen, waitFor } from './test/test-utils';
-import App from './App';
+import { App } from './App';
 
 describe('App', () => {
-  it('renders without crashing', async () => {
+  it('renders navigation links', () => {
     render(<App />);
-    // Wait for any async state updates to complete
-    await waitFor(() => {
-      // Test that the main heading exists
-      const headingElement = screen.getByRole('heading', { 
-        level: 1,
-        name: /Blog Posts/i 
-      });
-      expect(headingElement).toBeInTheDocument();
-    });
+    
+    expect(screen.getByText('Home')).toBeDefined();
+    expect(screen.getByText('Create Post')).toBeDefined();
+    expect(screen.getByText('Test AI')).toBeDefined();
   });
 
-  it('renders the main navigation', async () => {
+  it('renders blog title', () => {
     render(<App />);
-    // Wait for any async state updates to complete
-    await waitFor(() => {
-      // Test that the navigation exists
-      const navElement = screen.getByRole('navigation');
-      expect(navElement).toBeInTheDocument();
-
-      // Test that important navigation links are present
-      expect(screen.getByRole('link', { name: /home/i })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: /create/i })).toBeInTheDocument();
-    });
+    expect(screen.getByText('Li Xia Blog')).toBeDefined();
   });
 });

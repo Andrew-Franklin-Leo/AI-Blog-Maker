@@ -1,63 +1,50 @@
 import { describe, it, expect } from 'vitest';
-import { formatMarkdown, stripMarkdown } from './markdown';
+import { parseMarkdown, renderMarkdown } from './markdown';
 
-describe('formatMarkdown', () => {
-  it('converts markdown to HTML', () => {
-    const markdown = '# Hello\n\nThis is **bold** and *italic* text.';
-    const result = formatMarkdown(markdown);
-    
-    expect(result).toContain('<h1>Hello</h1>');
-    expect(result).toContain('<strong>bold</strong>');
-    expect(result).toContain('<em>italic</em>');
+describe('markdown utils', () => {
+  describe('parseMarkdown', () => {
+    it('handles empty input', () => {
+      expect(parseMarkdown('')).toBe('');
+      expect(parseMarkdown(undefined as unknown as string)).toBe('');
+    });
+
+    it('strips HTML tags', () => {
+      const input = '# Hello\n\nThis is a **bold** test';
+      expect(parseMarkdown(input)).not.toContain('<');
+      expect(parseMarkdown(input)).not.toContain('>');
+    });
+
+    it('preserves text content', () => {
+      const input = '# Hello\n\nThis is a test';
+      expect(parseMarkdown(input)).toContain('Hello');
+      expect(parseMarkdown(input)).toContain('This is a test');
+    });
+
+    it('handles HTML entities', () => {
+      const input = '&amp; &lt; &gt; &quot; &#039;';
+      expect(parseMarkdown(input)).toBe('& < > " \'');
+    });
   });
 
-  it('sanitizes HTML in markdown', () => {
-    const markdown = '# Title\n\n<script>alert("xss")</script>';
-    const result = formatMarkdown(markdown);
-    
-    expect(result).toContain('<h1>Title</h1>');
-    expect(result).not.toContain('<script>');
-    expect(result).not.toContain('alert');
-  });
+  describe('renderMarkdown', () => {
+    it('handles empty input', () => {
+      expect(renderMarkdown('')).toBe('');
+      expect(renderMarkdown(undefined as unknown as string)).toBe('');
+    });
 
-  it('handles empty input', () => {
-    const result = formatMarkdown('');
-    expect(result).toBe('');
-  });
+    it('converts markdown to HTML', () => {
+      const input = '# Hello\n\nThis is a **bold** test';
+      const result = renderMarkdown(input);
+      expect(result).toContain('<h1');
+      expect(result).toContain('<strong');
+    });
 
-  it('preserves safe HTML elements', () => {
-    const markdown = '# Title\n\n<a href="https://example.com">Link</a>';
-    const result = formatMarkdown(markdown);
-    
-    expect(result).toContain('<h1>Title</h1>');
-    expect(result).toContain('<a href="https://example.com">Link</a>');
-  });
-});
-
-describe('stripMarkdown', () => {
-  it('removes markdown syntax', () => {
-    const markdown = '# Hello\n\nThis is **bold** and *italic* text.';
-    const result = stripMarkdown(markdown);
-    
-    expect(result).toBe('Hello This is bold and italic text.');
-  });
-
-  it('handles empty input', () => {
-    const result = stripMarkdown('');
-    expect(result).toBe('');
-  });
-
-  it('removes multiple markdown elements', () => {
-    const markdown = '# Title\n## Subtitle\n* List item\n> Quote\n`code`';
-    const result = stripMarkdown(markdown);
-    
-    expect(result).toBe('Title Subtitle List item Quote code');
-  });
-
-  it('preserves non-markdown text', () => {
-    const text = 'Just regular text without any markdown.';
-    const result = stripMarkdown(text);
-    
-    expect(result).toBe(text);
+    it('preserves HTML entities', () => {
+      const input = '& < > " \'';
+      const result = renderMarkdown(input);
+      expect(result).toContain('&amp;');
+      expect(result).toContain('&lt;');
+      expect(result).toContain('&gt;');
+    });
   });
 });

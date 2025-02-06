@@ -1,17 +1,27 @@
 import { marked } from 'marked';
-import DOMPurify from 'dompurify';
 
-export function formatMarkdown(markdown: string): string {
-  const rawHtml = marked.parse(markdown);
-  return DOMPurify.sanitize(rawHtml as string);
-}
+export const parseMarkdown = (markdown: string): string => {
+  if (!markdown) return '';
+  
+  // Convert markdown to HTML
+  const html = marked(markdown);
+  
+  // Strip HTML tags for preview text
+  const strippedHtml = html.replace(/<[^>]*>/g, '');
+  
+  // Decode HTML entities
+  const decodedText = strippedHtml
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#039;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+  
+  return decodedText.trim();
+};
 
-export function stripMarkdown(markdown: string): string {
-  return markdown
-    .replace(/[#*_`~]/g, '')           // Remove markdown symbols
-    .replace(/\n{2,}/g, ' ')           // Replace multiple newlines with space
-    .replace(/\n/g, ' ')               // Replace single newlines with space
-    .replace(/>/g, '')                 // Remove blockquote symbols
-    .replace(/\s+/g, ' ')              // Replace multiple spaces with single space
-    .trim();                           // Remove leading/trailing whitespace
-}
+export const renderMarkdown = (markdown: string): string => {
+  if (!markdown) return '';
+  return marked(markdown);
+};

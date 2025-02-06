@@ -1,8 +1,10 @@
 export interface Post {
   id: string;
+  created_at: string;
+  updated_at: string;
   title: string;
   content: string;
   author: string;
-  created_at: string;
-  is_published: boolean;
+  ai_generated: boolean;
+  ai_prompt?: string;
 }

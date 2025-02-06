@@ -1,46 +1,45 @@
-import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { openRouter } from './openrouter';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load environment variables from .env file
-dotenv.config({ path: join(__dirname, '../../.env') });
-
-const API_KEY = process.env['VITE_OPENROUTER_API_KEY'];
-
-if (!API_KEY) {
-  throw new Error('VITE_OPENROUTER_API_KEY environment variable is required');
+export interface TestResult {
+  success: boolean;
+  error?: string;
 }
 
-export async function testOpenRouterConnection() {
+export const testOpenRouter = async (): Promise<TestResult> => {
   try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://your-site.com',
-        'Authorization': `Bearer ${API_KEY as string}`
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'user',
-            content: 'Hello! Can you help me test the OpenRouter API?'
-          }
-        ]
-      })
+    const response = await openRouter.chat.completions.create({
+      model: 'mistralai/mistral-7b-instruct',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a helpful assistant.',
+        },
+        {
+          role: 'user',
+          content: 'Test message. Please respond with "Connection successful!"',
+        },
+      ],
+      temperature: 0,
+      max_tokens: 10,
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (
+      response &&
+      response.choices &&
+      response.choices[0]?.message?.content?.includes('Connection successful')
+    ) {
+      return { success: true };
+    } else {
+      return {
+        success: false,
+        error: 'Unexpected response from OpenRouter',
+      };
     }
-
-    const data = await response.json();
-    return data;
   } catch (error) {
-    throw error;
+    console.error('OpenRouter test error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred',
+    };
   }
-}
+};

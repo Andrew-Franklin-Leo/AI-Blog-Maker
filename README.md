@@ -1,31 +1,37 @@
-# Li Xia's Blog Platform
+# Li Xia's Blog
 
-A modern blog platform built with React, Vite, Supabase, and OpenRouter AI integration.
-
-[![Release Workflow](https://github.com/Andrew-Franklin-Leo/AI-Blog-Maker/actions/workflows/release.yml/badge.svg?branch=develop)](https://github.com/Andrew-Franklin-Leo/AI-Blog-Maker/actions/workflows/release.yml)
+A blog application built with React, TypeScript, and Tailwind CSS, featuring AI-powered blog post generation using OpenRouter.
 
 ## Features
 
-- 📝 AI-powered blog post generation
-- 🎨 Markdown support with live preview
-- 🌓 Dark mode support
-- 🚀 Fast and responsive design
-- 🔒 Secure data handling
-- 📱 Mobile-friendly interface
+- 📝 Create and publish blog posts with Markdown support
+- 🤖 AI-powered blog post generation
+- 🎨 Clean and responsive design
+- ⚡ Fast and modern tech stack
+- 🔒 Type-safe development with TypeScript
+- 🗄️ Data persistence with Supabase
+
+## Tech Stack
+
+- React + TypeScript + Vite
+- Tailwind CSS for styling
+- OpenRouter for AI integration
+- Supabase for database and authentication
+- Marked for Markdown rendering
 
 ## Prerequisites
 
-- Node.js 18.x or later
-- npm 9.x or later
-- A Supabase account and project
-- An OpenRouter API key
+- Node.js 18+
+- npm or yarn
+- Supabase account
+- OpenRouter API key
 
-## Installation
+## Setup
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/Andrew-Franklin-Leo/AI-Blog-Maker.git
-cd AI-Blog-Maker
+git clone https://github.com/yourusername/li-xia-blog.git
+cd li-xia-blog
 ```
 
 2. Install dependencies:
@@ -33,102 +39,63 @@ cd AI-Blog-Maker
 npm install
 ```
 
-3. Set up environment variables:
+3. Copy the environment variables file and fill in your credentials:
 ```bash
-# Copy the example env file
 cp .env.example .env
-
-# Edit the .env file with your credentials
-nano .env
 ```
 
-Required environment variables:
-- `VITE_SUPABASE_URL`: Your Supabase project URL
-- `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `VITE_OPENROUTER_API_KEY`: Your OpenRouter API key
+4. Set up your Supabase database:
+   - Create a new project in Supabase
+   - Run the SQL commands from `setup.sql` in the Supabase SQL editor
+   - Copy your project URL and anon key to the `.env` file
 
-4. Initialize the database:
-```bash
-npm run setup-database
-```
+5. Get your OpenRouter API key:
+   - Sign up at [OpenRouter](https://openrouter.ai)
+   - Create an API key
+   - Add the API key to your `.env` file
 
-## Development
-
-Start the development server:
+6. Start the development server:
 ```bash
 npm run dev
 ```
 
-Run tests:
-```bash
-npm test
+## Development
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm test` - Run tests
+- `npm run test:coverage` - Run tests with coverage report
+
+## Project Structure
+
 ```
-
-Check types:
-```bash
-npm run typecheck
+src/
+  ├── components/     # React components
+  ├── context/       # React context providers
+  ├── lib/           # Utility libraries
+  ├── pages/         # Page components
+  ├── types/         # TypeScript type definitions
+  ├── utils/         # Helper functions
+  ├── App.tsx        # Main app component
+  └── main.tsx       # App entry point
 ```
-
-Lint code:
-```bash
-npm run lint
-```
-
-Format code:
-```bash
-npm run format
-```
-
-## Building for Production
-
-1. Build the project:
-```bash
-npm run build
-```
-
-2. Preview the production build:
-```bash
-npm run preview
-```
-
-## Security
-
-This project follows security best practices:
-- Environment variables for sensitive data
-- Input sanitization
-- API rate limiting
-- Secure authentication flows
-- Regular dependency updates
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
-
-Please ensure your PR:
-- Passes all tests
-- Includes relevant documentation
-- Follows the existing code style
-- Includes appropriate tests
+2. Create your feature branch: `git checkout -b feature/my-new-feature`
+3. Commit your changes: `git commit -am 'Add some feature'`
+4. Push to the branch: `git push origin feature/my-new-feature`
+5. Submit a pull request
 
 ## License
 
-This project is MIT licensed. See the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support, please:
-1. Check the [documentation](docs/)
-2. Search [existing issues](issues/)
-3. Open a new issue if needed
+MIT License - feel free to use this code for your own projects.
 
 ## Acknowledgments
 
-- [Supabase](https://supabase.com) for backend services
 - [OpenRouter](https://openrouter.ai) for AI capabilities
-- [Vite](https://vitejs.dev) for the build system
-- [React](https://reactjs.org) for the UI framework
+- [Supabase](https://supabase.com) for backend infrastructure
 - [Tailwind CSS](https://tailwindcss.com) for styling
+- [Marked](https://marked.js.org) for Markdown rendering

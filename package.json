@@ -15,16 +15,23 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "axios": "^1.6.5",
+    "clsx": "^2.1.0",
     "date-fns": "^3.3.1",
+    "marked": "^11.1.1",
+    "openai": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-error-boundary": "^4.0.12",
     "react-router-dom": "^6.21.3",
-    "showdown": "^2.1.0"
+    "showdown": "^2.1.0",
+    "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/react": "^14.1.2",
     "@testing-library/user-event": "^14.5.2",
+    "@types/marked": "^5.0.2",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@types/showdown": "^2.0.6",

@@ -1,10 +1,12 @@
-export function formatDate(dateString: string): string {
+export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-US', {
+  const formatter = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
-  }).format(date);
-}
+  });
+
+  return formatter.format(date);
+};

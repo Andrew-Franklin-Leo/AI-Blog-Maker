@@ -1,58 +1,57 @@
--- Enable pgcrypto extension for UUID generation
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 -- Create posts table
-CREATE TABLE IF NOT EXISTS public.posts (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS posts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
   title TEXT NOT NULL,
   content TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  metadata JSONB DEFAULT '{}'::jsonb NOT NULL
+  author TEXT NOT NULL,
+  ai_generated BOOLEAN DEFAULT FALSE,
+  ai_prompt TEXT
 );
 
--- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS posts_created_at_idx ON public.posts(created_at DESC);
-CREATE INDEX IF NOT EXISTS posts_title_idx ON public.posts(title);
-
--- Enable Row Level Security
-ALTER TABLE public.posts ENABLE ROW LEVEL SECURITY;
-
--- Create RLS policies
--- Allow public read access to all posts
-CREATE POLICY "Allow public read access"
-  ON public.posts
-  FOR SELECT
-  USING (true);
-
--- Allow anyone to create posts (no auth required for demo)
-CREATE POLICY "Allow public create access"
-  ON public.posts
-  FOR INSERT
-  WITH CHECK (true);
-
--- Create updated_at trigger function
+-- Create updated_at trigger
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = now();
+  NEW.updated_at = TIMEZONE('utc', NOW());
   RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- Create trigger for automatic updated_at
 CREATE TRIGGER update_posts_updated_at
   BEFORE UPDATE ON posts
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Insert a test post
-INSERT INTO public.posts (
-  title,
-  content,
-  metadata
-) VALUES (
-  'Welcome to Li Xia''s Blog',
-  'This is the first post on our blog platform. Welcome to this journey of authenticity and personal growth.',
-  '{"tags": ["welcome", "introduction"], "category": "General", "readTime": 2}'::jsonb
-);
+-- Create RLS policies
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+
+-- Allow anonymous read access
+CREATE POLICY "Allow anonymous read access"
+  ON posts
+  FOR SELECT
+  USING (true);
+
+-- Allow authenticated insert access
+CREATE POLICY "Allow authenticated insert access"
+  ON posts
+  FOR INSERT
+  WITH CHECK (auth.role() = 'authenticated');
+
+-- Allow authors to update their own posts
+CREATE POLICY "Allow authors to update their own posts"
+  ON posts
+  FOR UPDATE
+  USING (auth.uid()::text = author)
+  WITH CHECK (auth.uid()::text = author);
+
+-- Allow authors to delete their own posts
+CREATE POLICY "Allow authors to delete their own posts"
+  ON posts
+  FOR DELETE
+  USING (auth.uid()::text = author);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS posts_created_at_idx ON posts (created_at DESC);
+CREATE INDEX IF NOT EXISTS posts_author_idx ON posts (author);

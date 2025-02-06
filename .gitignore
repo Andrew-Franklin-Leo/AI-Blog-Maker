@@ -7,12 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Dependencies
 node_modules
-.pnp
-.pnp.js
-
-# Build
 dist
 dist-ssr
 *.local
@@ -20,7 +15,6 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -29,25 +23,25 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment files
+# Environment variables
 .env
-.env.*
-!.env.example
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Testing
-coverage
-.nyc_output
+# Coverage directory
+coverage/
 
-# TypeScript
-*.tsbuildinfo
+# Build cache
+.eslintcache
+.tsbuildinfo
 
-# Cache
-.cache
-.temp
-.tmp
-
-# Misc
-*.bak
+# Temporary files
 *.tmp
 *.temp
-.history/
+
+# Lock files (depending on your team's preference)
+# yarn.lock
+# package-lock.json
+# pnpm-lock.yaml
