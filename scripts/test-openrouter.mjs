@@ -49,8 +49,8 @@ const testOpenRouter = async () => {
     try {
       const data = JSON.parse(text);
       console.log('\nParsed Response:', JSON.stringify(data, null, 2));
-    } catch (e) {
-      console.error('\nFailed to parse response as JSON:', e.message);
+    } catch (_e) {
+      console.error('\nFailed to parse response as JSON:', _e.message);
     }
 
   } catch (error) {

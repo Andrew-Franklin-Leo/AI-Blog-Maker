@@ -17,7 +17,7 @@ const Navbar = () => {
             to="/"
             className="text-xl font-bold text-gray-900 dark:text-white"
           >
-            Li Xia's Blog
+            Li Xia&apos;s Blog
           </Link>
 
           <div className="flex space-x-4">

@@ -11,7 +11,7 @@ interface ToasterProps {
 }
 
 export const useToast = () => {
-  const [toasts, setToasts] = useState<Toast[]>([]);
+  const [, setToasts] = useState<Toast[]>([]);
 
   const addToast = (message: string, type: Toast["type"] = "info") => {
     const id = Math.random().toString(36).substr(2, 9);
