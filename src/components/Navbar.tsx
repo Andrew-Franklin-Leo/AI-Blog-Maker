@@ -14,7 +14,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white">
-            Li Xia's Blog
+            Li Xia&apos;s Blog
           </Link>
 
           <div className="flex space-x-4">
