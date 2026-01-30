@@ -166,7 +166,7 @@ const CreatePost = () => {
               </div>
             ) : (
               <>
-                <span className="mr-2">✨</span>
+                <span className="mr-2" aria-hidden="true">✨</span>
                 Generate with AI
               </>
             )}
@@ -200,12 +200,12 @@ const CreatePost = () => {
                   >
                     {copied ? (
                       <>
-                        <span>✅</span>
+                        <span aria-hidden="true">✅</span>
                         <span>Copied!</span>
                       </>
                     ) : (
                       <>
-                        <span>📋</span>
+                        <span aria-hidden="true">📋</span>
                         <span>Copy Markdown</span>
                       </>
                     )}
@@ -264,7 +264,7 @@ const CreatePost = () => {
                   </div>
                 ) : (
                   <>
-                    <span className="mr-2">📝</span>
+                    <span className="mr-2" aria-hidden="true">📝</span>
                     Publish Post
                   </>
                 )}

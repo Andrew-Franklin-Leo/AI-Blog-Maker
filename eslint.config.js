@@ -34,6 +34,30 @@ export default [
     },
   }),
   {
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: {
+        clients: 'readonly',
+        self: 'readonly',
+        addEventListener: 'readonly',
+        fetch: 'readonly',
+        caches: 'readonly',
+        Response: 'readonly',
+      }
+    }
+  },
+  {
+    files: ['scripts/**/*.mjs', 'tailwind.config.js'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        __dirname: 'readonly',
+        require: 'readonly',
+        module: 'readonly',
+      }
+    }
+  },
+  {
     files: ['**/*.{ts,tsx}'],
     rules: {
       'react-refresh/only-export-components': [
