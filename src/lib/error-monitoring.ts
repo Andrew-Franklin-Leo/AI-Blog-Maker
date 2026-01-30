@@ -52,7 +52,7 @@ class ErrorMonitor {
 
   public logError(details: ErrorDetails) {
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('Error logged:', details)
       return
     }
@@ -68,7 +68,7 @@ class ErrorMonitor {
         },
         body: JSON.stringify({
           timestamp: new Date().toISOString(),
-          environment: process.env.NODE_ENV,
+          environment: import.meta.env.MODE,
           ...details,
           // Add any other relevant information
           url: window.location.href,
@@ -84,7 +84,7 @@ class ErrorMonitor {
   }
 
   public logWarning(message: string, metadata?: Record<string, unknown>) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.warn('Warning logged:', message, metadata)
       return
     }
@@ -94,7 +94,7 @@ class ErrorMonitor {
   }
 
   public logInfo(message: string, metadata?: Record<string, unknown>) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.log('Info logged:', message, metadata)
       return
     }

@@ -120,7 +120,7 @@ const CreatePost = () => {
         <div className="bg-red-50 dark:bg-red-900/50 border-l-4 border-red-500 p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
-              <span className="text-red-500">⚠️</span>
+              <span className="text-red-500" aria-hidden="true">⚠️</span>
             </div>
             <div className="ml-3">
               <p className="text-sm text-red-700 dark:text-red-200">{error}</p>

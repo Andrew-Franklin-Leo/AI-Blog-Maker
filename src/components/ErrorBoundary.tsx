@@ -45,7 +45,7 @@ class ErrorBoundary extends Component<Props, State> {
 
               <div className="mb-6 text-gray-600 dark:text-gray-400">
                 <p>We&apos;re sorry for the inconvenience. The error has been logged and we&apos;ll look into it.</p>
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                {import.meta.env.DEV && this.state.error && (
                   <div className="mt-4">
                     <details className="text-left">
                       <summary className="cursor-pointer text-blue-600 dark:text-blue-400">
