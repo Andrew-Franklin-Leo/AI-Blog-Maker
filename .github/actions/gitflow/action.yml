@@ -46,10 +46,16 @@ runs:
     - name: Get release type and branch
       id: prepare
       shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        BASE_REF: ${{ github.base_ref }}
+        MAIN_BRANCH: ${{ inputs.main_branch }}
+        VERSION_INPUT: ${{ inputs.version }}
       run: |
         # Determine if this is a release or hotfix based on branch name
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          branch="${{ github.event.pull_request.head.ref }}"
+        if [[ "$EVENT_NAME" == "pull_request" ]]; then
+          branch="$HEAD_REF"
           if [[ "$branch" == release/* ]]; then
             echo "type=release" >> $GITHUB_OUTPUT
           elif [[ "$branch" == hotfix/* ]]; then
@@ -60,12 +66,12 @@ runs:
           echo "version=${branch#*/}" >> $GITHUB_OUTPUT
         else
           # For workflow_dispatch
-          if [[ "${{ github.base_ref }}" == "${{ inputs.main_branch }}" ]]; then
+          if [[ "$BASE_REF" == "$MAIN_BRANCH" ]]; then
             echo "type=hotfix" >> $GITHUB_OUTPUT
           else
             echo "type=release" >> $GITHUB_OUTPUT
           fi
-          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          echo "version=$VERSION_INPUT" >> $GITHUB_OUTPUT
         fi
 
     - name: Create release branch
@@ -85,9 +91,9 @@ runs:
         git checkout -b "$branch_name"
 
         # Update version in package.json
-        npm version ${{ steps.prepare.outputs.version }} --no-git-tag-version
+        pnpm version ${{ steps.prepare.outputs.version }} --no-git-tag-version
 
-        git add package.json package-lock.json
+        git add package.json
         git commit -m "chore: bump version to ${{ steps.prepare.outputs.version }}"
         git push origin "$branch_name"
 
@@ -97,6 +103,8 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        RELEASE_SUMMARY: ${{ inputs.release_summary }}
+        MAIN_BRANCH: ${{ inputs.main_branch }}
       run: |
         branch_name="${{ steps.prepare.outputs.type }}/${{ steps.prepare.outputs.version }}"
         pr_title="${{ steps.prepare.outputs.type }}: ${{ steps.prepare.outputs.version }}"
@@ -104,7 +112,7 @@ runs:
         # Create PR body with template
         pr_body="## ${{ steps.prepare.outputs.type }} ${{ steps.prepare.outputs.version }}
 
-        ${{ inputs.release_summary }}
+        $RELEASE_SUMMARY
 
         ## Deployment Checklist
         - [ ] All tests passing
@@ -114,11 +122,11 @@ runs:
         - [ ] Monitoring configured
 
         ## Changes
-        $(git log ${{ inputs.main_branch }}..$branch_name --format="* %s")"
+        $(git log $MAIN_BRANCH..$branch_name --format="* %s")"
 
         # Create PR
         pr_url=$(gh pr create \
-          --base "${{ inputs.main_branch }}" \
+          --base "$MAIN_BRANCH" \
           --head "$branch_name" \
           --title "$pr_title" \
           --body "$pr_body" \
@@ -134,9 +142,11 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        RELEASE_SUMMARY: ${{ inputs.release_summary }}
+        MAIN_BRANCH: ${{ inputs.main_branch }}
       run: |
-        git checkout ${{ inputs.main_branch }}
-        git pull origin ${{ inputs.main_branch }}
+        git checkout $MAIN_BRANCH
+        git pull origin $MAIN_BRANCH
 
         version="${{ steps.prepare.outputs.version }}"
         git tag -a "v${version}" -m "Release ${version}"
@@ -144,8 +154,8 @@ runs:
 
         gh release create "v${version}" \
           --title "Release ${version}" \
-          --notes "${{ inputs.release_summary }}" \
-          --target ${{ inputs.main_branch }}
+          --notes "$RELEASE_SUMMARY" \
+          --target $MAIN_BRANCH
 
     - name: Merge back to develop
       if: |
@@ -154,8 +164,11 @@ runs:
         github.event.pull_request.merged == true &&
         steps.prepare.outputs.type == 'release'
       shell: bash
+      env:
+        MAIN_BRANCH: ${{ inputs.main_branch }}
+        DEVELOP_BRANCH: ${{ inputs.develop_branch }}
       run: |
-        git checkout ${{ inputs.develop_branch }}
-        git pull origin ${{ inputs.develop_branch }}
-        git merge --no-ff ${{ inputs.main_branch }} -m "chore: merge release ${{ steps.prepare.outputs.version }} back to develop"
-        git push origin ${{ inputs.develop_branch }}
+        git checkout $DEVELOP_BRANCH
+        git pull origin $DEVELOP_BRANCH
+        git merge --no-ff $MAIN_BRANCH -m "chore: merge release ${{ steps.prepare.outputs.version }} back to develop"
+        git push origin $DEVELOP_BRANCH
