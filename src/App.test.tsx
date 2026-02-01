@@ -21,11 +21,13 @@ describe('App', () => {
     // Wait for any async state updates to complete
     await waitFor(() => {
       // Test that the navigation exists
-      const navElement = screen.getByRole('navigation');
+      const navElement = screen.getByRole('navigation', { name: /main navigation/i });
       expect(navElement).toBeInTheDocument();
 
       // Test that important navigation links are present
-      expect(screen.getByRole('link', { name: /home/i })).toBeInTheDocument();
+      // Use getAllByRole because both the brand link and Home link might match /home/i
+      const homeLinks = screen.getAllByRole('link', { name: /home/i });
+      expect(homeLinks.length).toBeGreaterThan(0);
       expect(screen.getByRole('link', { name: /create/i })).toBeInTheDocument();
     });
   });
