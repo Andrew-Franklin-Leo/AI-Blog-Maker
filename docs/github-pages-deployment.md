@@ -60,8 +60,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 2. Apply the above changes to the respective files
 3. Test the changes locally using:
    ```bash
-   npm run build
-   npm run preview
+   pnpm run build
+   pnpm run preview
    ```
 4. Commit and push the changes
 5. Wait for the GitHub Actions workflow to complete

@@ -4,7 +4,7 @@ This guide will walk you through setting up the Li Xia Blog Platform locally and
 
 ## Prerequisites
 
-1. Node.js 18+ and npm
+1. Node.js 18+ and pnpm
 2. Supabase account
 3. OpenRouter account
 4. GitHub account (for deployment)
@@ -59,12 +59,12 @@ This guide will walk you through setting up the Li Xia Blog Platform locally and
 
 3. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 
 4. Start development server:
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 5. Verify setup:
@@ -124,7 +124,7 @@ This guide will walk you through setting up the Li Xia Blog Platform locally and
 ### Development Issues
 1. Build failures:
    - Check Node.js version
-   - Clear npm cache
+   - Clear pnpm cache
    - Remove node_modules and reinstall
 
 2. Runtime errors:

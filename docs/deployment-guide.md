@@ -51,10 +51,10 @@ VITE_OPENROUTER_API_KEY=your-openrouter-api-key
 2. Build Configuration
    ```bash
    # Install dependencies
-   npm install
+   pnpm install
 
    # Build for production
-   npm run build
+   pnpm run build
    ```
 
 3. Repository Setup
