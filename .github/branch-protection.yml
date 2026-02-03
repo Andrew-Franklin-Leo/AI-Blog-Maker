@@ -1,0 +1,122 @@
+# Branch protection rules configuration
+# Import these settings in your GitHub repository settings
+
+# Main branch (production)
+main:
+  required_status_checks:
+    strict: true
+    checks:
+      - "validate_version"
+      - "type_check"
+      - "test"
+      - "build"
+      - "security_scan"
+  required_pull_request_reviews:
+    required_approving_review_count: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+  enforce_admins: true
+  restrictions:
+    apps: []
+    users: []
+    teams: ["maintainers"]
+  required_linear_history: true
+  allow_force_pushes: false
+  allow_deletions: false
+
+# Develop branch
+develop:
+  required_status_checks:
+    strict: true
+    checks:
+      - "type_check"
+      - "test"
+      - "build"
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+  enforce_admins: false
+  restrictions:
+    apps: []
+    users: []
+    teams: ["developers"]
+  required_linear_history: true
+  allow_force_pushes: false
+  allow_deletions: false
+
+# Release branches
+release/*:
+  required_status_checks:
+    strict: true
+    checks:
+      - "validate_version"
+      - "type_check"
+      - "test"
+      - "build"
+  required_pull_request_reviews:
+    required_approving_review_count: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+  enforce_admins: false
+  restrictions:
+    apps: []
+    users: []
+    teams: ["release-managers"]
+  required_linear_history: true
+  allow_force_pushes: false
+  allow_deletions: false
+
+# Hotfix branches
+hotfix/*:
+  required_status_checks:
+    strict: true
+    checks:
+      - "validate_version"
+      - "type_check"
+      - "test"
+      - "build"
+  required_pull_request_reviews:
+    required_approving_review_count: 2
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+  enforce_admins: false
+  restrictions:
+    apps: []
+    users: []
+    teams: ["release-managers"]
+  required_linear_history: true
+  allow_force_pushes: false
+  allow_deletions: false
+
+# Feature branches
+feature/*:
+  required_status_checks:
+    strict: true
+    checks:
+      - "type_check"
+      - "test"
+      - "build"
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+  enforce_admins: false
+  required_linear_history: true
+  allow_force_pushes: true
+  allow_deletions: true
+
+# Bugfix branches
+bugfix/*:
+  required_status_checks:
+    strict: true
+    checks:
+      - "type_check"
+      - "test"
+      - "build"
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+  enforce_admins: false
+  required_linear_history: true
+  allow_force_pushes: true
+  allow_deletions: true
