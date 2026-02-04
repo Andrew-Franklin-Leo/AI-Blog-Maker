@@ -12,6 +12,9 @@ const compat = new FlatCompat({
 });
 
 export default [
+  {
+    ignores: ['dist/**', 'build/**', 'coverage/**'],
+  },
   ...compat.config({
     extends: [
       'eslint:recommended',
@@ -26,6 +29,7 @@ export default [
     env: {
       browser: true,
       es2020: true,
+      node: true,
     },
     settings: {
       react: {
@@ -42,6 +46,7 @@ export default [
       ],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       'react/prop-types': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
   {
@@ -51,6 +56,13 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', 'build/**', 'coverage/**'],
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: {
+        clients: 'readonly',
+        caches: 'readonly',
+        self: 'readonly',
+      },
+    },
   },
 ];

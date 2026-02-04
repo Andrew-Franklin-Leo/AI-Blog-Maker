@@ -22,7 +22,7 @@ export const useToast = () => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
   }
 
-  return { addToast, removeToast }
+  return { addToast, removeToast, toasts }
 }
 
 export const Toaster = ({ duration = 3000 }: ToasterProps) => {
