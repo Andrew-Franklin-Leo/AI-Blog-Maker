@@ -26,6 +26,8 @@ export default [
     env: {
       browser: true,
       es2020: true,
+      node: true,
+      serviceworker: true,
     },
     settings: {
       react: {
@@ -48,6 +50,7 @@ export default [
     files: ['**/*.test.{ts,tsx}', '**/test/**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
+      'react-refresh/only-export-components': 'off',
     },
   },
   {
