@@ -73,18 +73,22 @@ jobs:
           fetch-depth: 0
 
       - name: Create release branch
+        env:
+          VERSION: ${{ github.event.inputs.version }}
         run: |
-          git checkout -b release/v${{ github.event.inputs.version }}
-          git push origin release/v${{ github.event.inputs.version }}
+          git checkout -b "release/v$VERSION"
+          git push origin "release/v$VERSION"
 
       - name: Update version
+        env:
+          VERSION: ${{ github.event.inputs.version }}
         run: |
-          pnpm version ${{ github.event.inputs.version }} --no-git-tag-version
+          pnpm version "$VERSION" --no-git-tag-version
           git config user.name github-actions
           git config user.email github-actions@github.com
           git add package.json pnpm-lock.yaml
-          git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
-          git push origin release/v${{ github.event.inputs.version }}
+          git commit -m "chore: bump version to $VERSION"
+          git push origin "release/v$VERSION"
 
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
