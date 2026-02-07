@@ -12,6 +12,9 @@ const compat = new FlatCompat({
 });
 
 export default [
+  {
+    ignores: ['dist/**', 'build/**', 'coverage/**'],
+  },
   ...compat.config({
     extends: [
       'eslint:recommended',
@@ -52,8 +55,5 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       'react-refresh/only-export-components': 'off',
     },
-  },
-  {
-    ignores: ['dist/**', 'build/**', 'coverage/**'],
   },
 ];

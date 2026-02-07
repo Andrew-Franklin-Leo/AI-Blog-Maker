@@ -111,7 +111,7 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'view') {
     event.waitUntil(
-      clients.openWindow('/')
+      self.clients.openWindow('/')
     )
   }
 })
