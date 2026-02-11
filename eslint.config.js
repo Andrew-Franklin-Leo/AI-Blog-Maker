@@ -51,6 +51,29 @@ export default [
     },
   },
   {
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: {
+        self: 'readonly',
+        caches: 'readonly',
+        fetch: 'readonly',
+        clients: 'readonly',
+        Response: 'readonly',
+      },
+    },
+  },
+  {
+    files: ['scripts/**/*.mjs', 'tailwind.config.js', 'eslint.config.js'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        require: 'readonly',
+        __dirname: 'readonly',
+        console: 'readonly',
+      },
+    },
+  },
+  {
     ignores: ['dist/**', 'build/**', 'coverage/**'],
   },
 ];
