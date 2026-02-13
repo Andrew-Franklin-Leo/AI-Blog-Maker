@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 

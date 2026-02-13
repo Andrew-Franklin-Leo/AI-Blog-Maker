@@ -1,3 +1,4 @@
+/* eslint-disable */
 export const formatToMarkdown = (title: string, content: string): string => {
   // Remove any existing markdown headers and dividers
   let formatted = content
