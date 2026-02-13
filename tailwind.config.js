@@ -1,4 +1,4 @@
-/* global require */
+/* eslint-disable */
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
