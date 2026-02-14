@@ -1,26 +1,26 @@
 interface ErrorDetails {
-  message: string
-  stack?: string
-  componentStack?: string
-  metadata?: Record<string, any>
+  message: string;
+  stack?: string;
+  componentStack?: string;
+  metadata?: Record<string, unknown>;
 }
 
 class ErrorMonitor {
-  private static instance: ErrorMonitor
-  private isInitialized: boolean = false
+  private static instance: ErrorMonitor;
+  private isInitialized: boolean = false;
 
   private constructor() {}
 
   public static getInstance(): ErrorMonitor {
     if (!ErrorMonitor.instance) {
-      ErrorMonitor.instance = new ErrorMonitor()
+      ErrorMonitor.instance = new ErrorMonitor();
     }
-    return ErrorMonitor.instance
+    return ErrorMonitor.instance;
   }
 
   public init() {
     if (this.isInitialized) {
-      return
+      return;
     }
 
     // Set up global error handler
@@ -31,30 +31,30 @@ class ErrorMonitor {
         metadata: {
           source,
           lineno,
-          colno
-        }
-      })
-    }
+          colno,
+        },
+      });
+    };
 
     // Set up unhandled rejection handler
     window.onunhandledrejection = (event) => {
       this.logError({
-        message: 'Unhandled Promise Rejection',
+        message: "Unhandled Promise Rejection",
         stack: event.reason?.stack,
         metadata: {
-          reason: event.reason
-        }
-      })
-    }
+          reason: event.reason,
+        },
+      });
+    };
 
-    this.isInitialized = true
+    this.isInitialized = true;
   }
 
   public logError(details: ErrorDetails) {
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error logged:', details)
-      return
+    if (import.meta.env.DEV) {
+      console.error("Error logged:", details);
+      return;
     }
 
     // In production, you would send this to your error tracking service
@@ -83,45 +83,45 @@ class ErrorMonitor {
     */
   }
 
-  public logWarning(message: string, metadata?: Record<string, any>) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('Warning logged:', message, metadata)
-      return
+  public logWarning(message: string, metadata?: Record<string, unknown>) {
+    if (import.meta.env.DEV) {
+      console.warn("Warning logged:", message, metadata);
+      return;
     }
 
     // In production, you might want to log warnings differently
     // this.logToService({ level: 'warning', message, metadata })
   }
 
-  public logInfo(message: string, metadata?: Record<string, any>) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Info logged:', message, metadata)
-      return
+  public logInfo(message: string, metadata?: Record<string, unknown>) {
+    if (import.meta.env.DEV) {
+      console.log("Info logged:", message, metadata);
+      return;
     }
 
     // In production, you might want to log info differently
     // this.logToService({ level: 'info', message, metadata })
   }
 
-  public setGlobalMetadata(metadata: Record<string, any>) {
+  public setGlobalMetadata(_metadata: Record<string, unknown>) {
     // Add any global metadata that should be included with all error reports
     // For example: user information, app version, etc.
     // this.globalMetadata = metadata
   }
 }
 
-export const errorMonitor = ErrorMonitor.getInstance()
+export const errorMonitor = ErrorMonitor.getInstance();
 
 // Helper hooks and utilities
 export const initErrorMonitoring = () => {
-  errorMonitor.init()
+  errorMonitor.init();
 
   // Set up any global metadata
   errorMonitor.setGlobalMetadata({
-    appVersion: import.meta.env.VITE_APP_VERSION || 'unknown',
+    appVersion: import.meta.env.VITE_APP_VERSION || "unknown",
     // Add any other global metadata
-  })
-}
+  });
+};
 
 // Export types for better developer experience
-export type { ErrorDetails }
+export type { ErrorDetails };

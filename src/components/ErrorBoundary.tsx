@@ -1,33 +1,33 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Component, ErrorInfo, ReactNode } from "react";
+import { Link } from "react-router-dom";
 
 interface Props {
-  children: ReactNode
+  children: ReactNode;
 }
 
 interface State {
-  hasError: boolean
-  error: Error | null
-  errorInfo: ErrorInfo | null
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
-    errorInfo: null
-  }
+    errorInfo: null,
+  };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null }
+    return { hasError: true, error, errorInfo: null };
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
+    console.error("Error caught by boundary:", error, errorInfo);
     this.setState({
       error,
-      errorInfo
-    })
+      errorInfo,
+    });
 
     // Here you could send the error to your error tracking service
     // e.g., Sentry, LogRocket, etc.
@@ -44,8 +44,11 @@ class ErrorBoundary extends Component<Props, State> {
               </h1>
 
               <div className="mb-6 text-gray-600 dark:text-gray-400">
-                <p>We're sorry for the inconvenience. The error has been logged and we'll look into it.</p>
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                <p>
+                  We&apos;re sorry for the inconvenience. The error has been
+                  logged and we&apos;ll look into it.
+                </p>
+                {import.meta.env.DEV && this.state.error && (
                   <div className="mt-4">
                     <details className="text-left">
                       <summary className="cursor-pointer text-blue-600 dark:text-blue-400">
@@ -78,11 +81,11 @@ class ErrorBoundary extends Component<Props, State> {
             </div>
           </div>
         </div>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }
 
-export default ErrorBoundary
+export default ErrorBoundary;
