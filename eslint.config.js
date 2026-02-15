@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import { FlatCompat } from '@eslint/eslintrc';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import globals from 'globals';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +13,9 @@ const compat = new FlatCompat({
 });
 
 export default [
+  {
+    ignores: ['dist/**', 'build/**', 'coverage/**'],
+  },
   ...compat.config({
     extends: [
       'eslint:recommended',
@@ -23,16 +27,16 @@ export default [
     ],
     parser: '@typescript-eslint/parser',
     plugins: ['@typescript-eslint', 'react', 'react-hooks', 'react-refresh'],
-    env: {
-      browser: true,
-      es2020: true,
-    },
-    settings: {
-      react: {
-        version: 'detect',
+  }),
+  {
+    files: ['**/*.{js,mjs,cjs,ts,tsx}'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.es2020,
       },
     },
-  }),
+  },
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
@@ -51,6 +55,19 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', 'build/**', 'coverage/**'],
+    files: ['public/sw.js'],
+    languageOptions: {
+      globals: {
+        ...globals.serviceworker,
+      },
+    },
+  },
+  {
+    files: ['scripts/**/*.mjs', 'tailwind.config.js', 'postcss.config.js', 'vite.config.ts', 'vitest.config.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+    },
   },
 ];
