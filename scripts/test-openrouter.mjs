@@ -1,70 +1,52 @@
+/* global process */
+/* eslint-env node */
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Load environment variables
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY;
+const API_KEY = process.env.VITE_OPENROUTER_API_KEY;
 
-if (!OPENROUTER_API_KEY) {
-  console.error('Error: VITE_OPENROUTER_API_KEY not found in environment variables');
+if (!API_KEY) {
+  console.error('Error: VITE_OPENROUTER_API_KEY is not set in .env');
   process.exit(1);
 }
 
-const testOpenRouter = async () => {
+async function testOpenRouter() {
+  console.log('Testing OpenRouter connection...');
+
   try {
-    console.log('Testing OpenRouter API connection...');
-    const requestBody = {
-      model: "deepseek/deepseek-r1:free",
-      messages: [{
-        role: "user",
-        content: "Say hello"
-      }]
-    };
-
-    console.log('\nRequest Body:', JSON.stringify(requestBody, null, 2));
-
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`
+        'Authorization': `Bearer ${API_KEY}`,
+        'HTTP-Referer': 'http://localhost:3000',
+        'X-Title': 'Li Xia Blog Test',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify({
+        model: 'google/gemini-pro-1.5-exp-0801:free',
+        messages: [
+          { role: 'user', content: 'Say hello in one word.' }
+        ]
+      })
     });
 
-    console.log('\nResponse Status:', response.status);
-    console.log('Response Headers:', Object.fromEntries(response.headers));
+    const data = await response.json();
 
-    const text = await response.text();
-    console.log('\nRaw Response:', text);
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
+    if (response.ok) {
+      console.log('Success! Response from AI:', data.choices[0].message.content);
+    } else {
+      console.error('API Error:', data.error || data);
     }
-
-    try {
-      const data = JSON.parse(text);
-      console.log('\nParsed Response:', JSON.stringify(data, null, 2));
-    } catch (e) {
-      console.error('\nFailed to parse response as JSON:', e.message);
-    }
-
   } catch (error) {
-    console.error('\nError:', error.message);
-    if (error.response) {
-      try {
-        const text = await error.response.text();
-        console.error('Error Response:', text);
-      } catch (e) {
-        console.error('Failed to read error response');
-      }
-    }
+    console.error('Network Error:', error.message);
   }
-};
+}
 
-console.log('Starting OpenRouter API test...\n');
 testOpenRouter();
