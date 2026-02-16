@@ -16,7 +16,7 @@ A modern blog platform built with React, Vite, Supabase, and OpenRouter AI integ
 ## Prerequisites
 
 - Node.js 18.x or later
-- npm 9.x or later
+- pnpm 8.x or later
 - A Supabase account and project
 - An OpenRouter API key
 
@@ -30,7 +30,7 @@ cd AI-Blog-Maker
 
 2. Install dependencies:
 ```bash
-npm install
+pnpm install
 ```
 
 3. Set up environment variables:
@@ -49,46 +49,46 @@ Required environment variables:
 
 4. Initialize the database:
 ```bash
-npm run setup-database
+pnpm run setup-database
 ```
 
 ## Development
 
 Start the development server:
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 Run tests:
 ```bash
-npm test
+pnpm test
 ```
 
 Check types:
 ```bash
-npm run typecheck
+pnpm run typecheck
 ```
 
 Lint code:
 ```bash
-npm run lint
+pnpm run lint
 ```
 
 Format code:
 ```bash
-npm run format
+pnpm run format
 ```
 
 ## Building for Production
 
 1. Build the project:
 ```bash
-npm run build
+pnpm run build
 ```
 
 2. Preview the production build:
 ```bash
-npm run preview
+pnpm preview
 ```
 
 ## Security
