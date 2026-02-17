@@ -1,0 +1,3 @@
+## 2025-05-22 - Navbar Accessibility and Consistency
+**Learning:** For better accessibility and visual consistency, using a `navLinkClass` helper with `NavLink` allows for centralized management of active states (like `border-b-2` for color-blind users) and focus-visible rings. A 'Skip to content' link is also essential for keyboard users but should be carefully placed and styled to avoid blocking other elements when focused during automated testing.
+**Action:** Always implement a 'Skip to content' link in the main navigation and use a centralized class helper for navigation links to ensure a11y and UX consistency across the app.
