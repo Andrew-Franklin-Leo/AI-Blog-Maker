@@ -1,3 +1,4 @@
+/* eslint-env node */
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import path from 'path';
@@ -7,11 +8,11 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const OPENROUTER_API_KEY = process.env.VITE_OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = globalThis.process.env.VITE_OPENROUTER_API_KEY;
 
 if (!OPENROUTER_API_KEY) {
   console.error('Error: VITE_OPENROUTER_API_KEY not found in environment variables');
-  process.exit(1);
+  globalThis.process.exit(1);
 }
 
 const testOpenRouter = async () => {

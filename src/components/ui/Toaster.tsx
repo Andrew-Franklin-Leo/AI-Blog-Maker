@@ -10,8 +10,9 @@ interface ToasterProps {
   duration?: number
 }
 
+// Move hook to separate file would be better, but for now just fix the lint error
 export const useToast = () => {
-  const [toasts, setToasts] = useState<Toast[]>([])
+  const [, setToasts] = useState<Toast[]>([])
 
   const addToast = (message: string, type: Toast['type'] = 'info') => {
     const id = Math.random().toString(36).substr(2, 9)

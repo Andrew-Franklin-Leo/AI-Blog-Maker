@@ -1,3 +1,4 @@
+/* eslint-env serviceworker */
 const CACHE_NAME = 'li-xia-blog-v1'
 const STATIC_ASSETS = [
   '/',
@@ -110,7 +111,7 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'view') {
     event.waitUntil(
-      clients.openWindow('/')
+      self.clients.openWindow('/')
     )
   }
 })
