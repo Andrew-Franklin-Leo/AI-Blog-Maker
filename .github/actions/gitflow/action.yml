@@ -85,9 +85,9 @@ runs:
         git checkout -b "$branch_name"
 
         # Update version in package.json
-        npm version ${{ steps.prepare.outputs.version }} --no-git-tag-version
+        pnpm version ${{ steps.prepare.outputs.version }} --no-git-tag-version
 
-        git add package.json package-lock.json
+        git add package.json
         git commit -m "chore: bump version to ${{ steps.prepare.outputs.version }}"
         git push origin "$branch_name"
 
