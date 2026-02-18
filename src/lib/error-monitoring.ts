@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface ErrorDetails {
   message: string
   stack?: string
@@ -103,7 +104,7 @@ class ErrorMonitor {
     // this.logToService({ level: 'info', message, metadata })
   }
 
-  public setGlobalMetadata(metadata: Record<string, any>) {
+  public setGlobalMetadata(_metadata: Record<string, any>) {
     // Add any global metadata that should be included with all error reports
     // For example: user information, app version, etc.
     // this.globalMetadata = metadata
