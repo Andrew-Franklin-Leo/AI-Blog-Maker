@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* global process */
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
 import path from 'path';

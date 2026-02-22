@@ -46,10 +46,13 @@ runs:
     - name: Get release type and branch
       id: prepare
       shell: bash
+      env:
+        HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        VERSION_INPUT: ${{ inputs.version }}
       run: |
         # Determine if this is a release or hotfix based on branch name
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          branch="${{ github.event.pull_request.head.ref }}"
+          branch="$HEAD_REF"
           if [[ "$branch" == release/* ]]; then
             echo "type=release" >> $GITHUB_OUTPUT
           elif [[ "$branch" == hotfix/* ]]; then
@@ -65,7 +68,7 @@ runs:
           else
             echo "type=release" >> $GITHUB_OUTPUT
           fi
-          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          echo "version=$VERSION_INPUT" >> $GITHUB_OUTPUT
         fi
 
     - name: Create release branch
@@ -97,6 +100,7 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        SUMMARY: ${{ inputs.release_summary }}
       run: |
         branch_name="${{ steps.prepare.outputs.type }}/${{ steps.prepare.outputs.version }}"
         pr_title="${{ steps.prepare.outputs.type }}: ${{ steps.prepare.outputs.version }}"
@@ -104,7 +108,7 @@ runs:
         # Create PR body with template
         pr_body="## ${{ steps.prepare.outputs.type }} ${{ steps.prepare.outputs.version }}
 
-        ${{ inputs.release_summary }}
+        $SUMMARY
 
         ## Deployment Checklist
         - [ ] All tests passing
@@ -134,6 +138,7 @@ runs:
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
+        SUMMARY: ${{ inputs.release_summary }}
       run: |
         git checkout ${{ inputs.main_branch }}
         git pull origin ${{ inputs.main_branch }}
@@ -144,7 +149,7 @@ runs:
 
         gh release create "v${version}" \
           --title "Release ${version}" \
-          --notes "${{ inputs.release_summary }}" \
+          --notes "$SUMMARY" \
           --target ${{ inputs.main_branch }}
 
     - name: Merge back to develop

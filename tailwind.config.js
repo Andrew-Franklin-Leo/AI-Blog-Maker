@@ -1,4 +1,5 @@
 /* eslint-env node */
+/* global require */
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
