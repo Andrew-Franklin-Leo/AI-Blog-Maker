@@ -13,3 +13,7 @@
 ## 2025-02-26 - Security Scan Token Requirement
 **Learning:** CI jobs using Snyk for security scanning will fail if the 'SNYK_TOKEN' is missing from the repository secrets, blocking the entire CI pipeline.
 **Action:** Add 'continue-on-error: true' to the Snyk scan step to prevent missing secrets from blocking development, while still allowing the scan to run when possible.
+
+## 2025-02-26 - Shell Injection in GitHub Actions
+**Learning:** Directly interpolating untrusted GitHub context variables (like 'github.event.pull_request.head.ref') into shell scripts in GitHub Actions creates a critical security vulnerability (shell injection).
+**Action:** Always map untrusted context variables to environment variables and use the environment variables in the shell script.
