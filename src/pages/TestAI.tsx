@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { testOpenRouterConnection } from '../lib/test-openrouter'
-import { useToast } from '../components/ui/Toaster'
+import { useToast } from '../hooks/useToast'
 
 const TestAI = () => {
   const { addToast } = useToast()
