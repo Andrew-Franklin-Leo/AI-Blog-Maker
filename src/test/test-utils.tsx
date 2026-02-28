@@ -1,4 +1,4 @@
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { render, RenderOptions } from '@testing-library/react';
 import { vi } from 'vitest';
@@ -22,7 +22,7 @@ vi.mock('@supabase/supabase-js', () => ({
   }),
 }));
 
-const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+const AllTheProviders = ({ children }: { children: ReactNode }) => {
   return (
     <BrowserRouter>
       {children}
@@ -35,5 +35,11 @@ const customRender = (
   options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: AllTheProviders, ...options });
 
-export * from '@testing-library/react';
 export { customRender as render };
+export {
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+  cleanup
+} from '@testing-library/react';

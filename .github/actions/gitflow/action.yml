@@ -46,10 +46,12 @@ runs:
     - name: Get release type and branch
       id: prepare
       shell: bash
+      env:
+        HEAD_REF: ${{ github.event.pull_request.head.ref }}
       run: |
         # Determine if this is a release or hotfix based on branch name
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          branch="${{ github.event.pull_request.head.ref }}"
+          branch="$HEAD_REF"
           if [[ "$branch" == release/* ]]; then
             echo "type=release" >> $GITHUB_OUTPUT
           elif [[ "$branch" == hotfix/* ]]; then

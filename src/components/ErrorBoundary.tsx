@@ -1,4 +1,4 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react'
+import { Component, ErrorInfo, ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 interface Props {
@@ -44,8 +44,8 @@ class ErrorBoundary extends Component<Props, State> {
               </h1>
 
               <div className="mb-6 text-gray-600 dark:text-gray-400">
-                <p>We're sorry for the inconvenience. The error has been logged and we'll look into it.</p>
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+                <p>We&apos;re sorry for the inconvenience. The error has been logged and we&apos;ll look into it.</p>
+                {import.meta.env.DEV && this.state.error && (
                   <div className="mt-4">
                     <details className="text-left">
                       <summary className="cursor-pointer text-blue-600 dark:text-blue-400">
