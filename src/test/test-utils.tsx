@@ -1,6 +1,7 @@
-import { ReactElement } from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import React, { ReactElement } from 'react';
+import { HashRouter } from 'react-router-dom';
 import { render, RenderOptions } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
 
 // Mock Supabase client
@@ -22,11 +23,21 @@ vi.mock('@supabase/supabase-js', () => ({
   }),
 }));
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
-    <BrowserRouter>
-      {children}
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <HashRouter>
+        {children}
+      </HashRouter>
+    </QueryClientProvider>
   );
 };
 
@@ -35,5 +46,6 @@ const customRender = (
   options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: AllTheProviders, ...options });
 
-export * from '@testing-library/react';
 export { customRender as render };
+export * from '@testing-library/react';
+export { AllTheProviders };
