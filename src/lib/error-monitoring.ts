@@ -2,7 +2,7 @@ interface ErrorDetails {
   message: string
   stack?: string
   componentStack?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 class ErrorMonitor {
@@ -52,7 +52,7 @@ class ErrorMonitor {
 
   public logError(details: ErrorDetails) {
     // Log to console in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('Error logged:', details)
       return
     }
@@ -68,7 +68,7 @@ class ErrorMonitor {
         },
         body: JSON.stringify({
           timestamp: new Date().toISOString(),
-          environment: process.env.NODE_ENV,
+          environment: import.meta.env.MODE,
           ...details,
           // Add any other relevant information
           url: window.location.href,
@@ -83,8 +83,8 @@ class ErrorMonitor {
     */
   }
 
-  public logWarning(message: string, metadata?: Record<string, any>) {
-    if (process.env.NODE_ENV === 'development') {
+  public logWarning(message: string, metadata?: Record<string, unknown>) {
+    if (import.meta.env.DEV) {
       console.warn('Warning logged:', message, metadata)
       return
     }
@@ -93,8 +93,8 @@ class ErrorMonitor {
     // this.logToService({ level: 'warning', message, metadata })
   }
 
-  public logInfo(message: string, metadata?: Record<string, any>) {
-    if (process.env.NODE_ENV === 'development') {
+  public logInfo(message: string, metadata?: Record<string, unknown>) {
+    if (import.meta.env.DEV) {
       console.log('Info logged:', message, metadata)
       return
     }
@@ -103,7 +103,7 @@ class ErrorMonitor {
     // this.logToService({ level: 'info', message, metadata })
   }
 
-  public setGlobalMetadata(metadata: Record<string, any>) {
+  public setGlobalMetadata(_metadata: Record<string, unknown>) {
     // Add any global metadata that should be included with all error reports
     // For example: user information, app version, etc.
     // this.globalMetadata = metadata
