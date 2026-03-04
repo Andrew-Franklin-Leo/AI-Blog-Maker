@@ -1,6 +1,6 @@
 export const formatToMarkdown = (title: string, content: string): string => {
   // Remove any existing markdown headers and dividers
-  let formatted = content
+  const formatted = content
     .replace(/^#{1,6}\s/gm, '')
     .replace(/^---+$/gm, '')
     .replace(/\*\*/g, '') // Remove bold markers
@@ -63,7 +63,7 @@ export const parseMetadata = (content: string) => {
     const [full, value] = match
     if (full.toLowerCase().includes('tags')) {
       metadata.tags = value
-        .replace(/[\[\]]/g, '')
+        .replace(/[[]]/g, '')
         .split(',')
         .map(tag => tag.trim())
         .filter(Boolean)

@@ -11,15 +11,13 @@ interface ToasterProps {
 }
 
 export const useToast = () => {
-  const [toasts, setToasts] = useState<Toast[]>([])
-
   const addToast = (message: string, type: Toast['type'] = 'info') => {
-    const id = Math.random().toString(36).substr(2, 9)
-    setToasts((prev) => [...prev, { id, message, type }])
+    // This is a placeholder until shared state is implemented
+    console.log(`Toast: [${type}] ${message}`)
   }
 
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id))
+  const removeToast = (_id: string) => {
+    // This is a placeholder
   }
 
   return { addToast, removeToast }
