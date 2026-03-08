@@ -1,10 +1,10 @@
-import { Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import CreatePost from "./pages/CreatePost";
-import ViewPost from "./pages/ViewPost";
-import TestAI from "./pages/TestAI";
-import { Toaster } from "./components/ui/Toaster";
+import { Routes, Route } from 'react-router-dom'
+import Navbar from './components/Navbar'
+import Home from './pages/Home'
+import CreatePost from './pages/CreatePost'
+import ViewPost from './pages/ViewPost'
+import TestAI from './pages/TestAI'
+import { Toaster } from './components/ui/Toaster'
 
 function App() {
   return (
@@ -24,7 +24,7 @@ function App() {
       </main>
       <Toaster />
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

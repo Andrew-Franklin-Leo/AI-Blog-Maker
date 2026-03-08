@@ -1,22 +1,22 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation } from 'react-router-dom'
 
 const Navbar = () => {
-  const location = useLocation();
+  const location = useLocation()
 
   const isActive = (path: string) => {
     return location.pathname === path
-      ? "text-blue-600 dark:text-blue-400"
-      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white";
-  };
+      ? 'text-blue-600 dark:text-blue-400'
+      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+  }
 
   const handleSkipToContent = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault();
-    const target = document.getElementById("main-content");
+    e.preventDefault()
+    const target = document.getElementById('main-content')
     if (target) {
-      target.focus();
-      target.scrollIntoView();
+      target.focus()
+      target.scrollIntoView()
     }
-  };
+  }
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-sm relative">
@@ -29,29 +29,26 @@ const Navbar = () => {
       </a>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link
-            to="/"
-            className="text-xl font-bold text-gray-900 dark:text-white"
-          >
+          <Link to="/" className="text-xl font-bold text-gray-900 dark:text-white">
             Li Xia&apos;s Blog
           </Link>
 
           <div className="flex space-x-4">
             <Link
               to="/"
-              className={`${isActive("/")} transition-colors duration-200`}
+              className={`${isActive('/')} transition-colors duration-200`}
             >
               Home
             </Link>
             <Link
               to="/create"
-              className={`${isActive("/create")} transition-colors duration-200`}
+              className={`${isActive('/create')} transition-colors duration-200`}
             >
               Create Post
             </Link>
             <Link
               to="/test"
-              className={`${isActive("/test")} transition-colors duration-200`}
+              className={`${isActive('/test')} transition-colors duration-200`}
             >
               Test AI
             </Link>
@@ -59,7 +56,7 @@ const Navbar = () => {
         </div>
       </div>
     </nav>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar
