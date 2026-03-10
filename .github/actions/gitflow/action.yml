@@ -46,10 +46,15 @@ runs:
     - name: Get release type and branch
       id: prepare
       shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        BASE_REF: ${{ github.base_ref }}
+        INPUT_VERSION: ${{ inputs.version }}
       run: |
         # Determine if this is a release or hotfix based on branch name
-        if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-          branch="${{ github.event.pull_request.head.ref }}"
+        if [[ "$EVENT_NAME" == "pull_request" ]]; then
+          branch="$PR_HEAD_REF"
           if [[ "$branch" == release/* ]]; then
             echo "type=release" >> $GITHUB_OUTPUT
           elif [[ "$branch" == hotfix/* ]]; then
@@ -60,12 +65,12 @@ runs:
           echo "version=${branch#*/}" >> $GITHUB_OUTPUT
         else
           # For workflow_dispatch
-          if [[ "${{ github.base_ref }}" == "${{ inputs.main_branch }}" ]]; then
+          if [[ "$BASE_REF" == "${{ inputs.main_branch }}" ]]; then
             echo "type=hotfix" >> $GITHUB_OUTPUT
           else
             echo "type=release" >> $GITHUB_OUTPUT
           fi
-          echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          echo "version=$INPUT_VERSION" >> $GITHUB_OUTPUT
         fi
 
     - name: Create release branch
