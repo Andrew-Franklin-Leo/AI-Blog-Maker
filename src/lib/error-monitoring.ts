@@ -2,7 +2,7 @@ interface ErrorDetails {
   message: string
   stack?: string
   componentStack?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 class ErrorMonitor {
@@ -29,7 +29,7 @@ class ErrorMonitor {
         message: message.toString(),
         stack: error?.stack,
         metadata: {
-          source,
+          source: source as string,
           lineno,
           colno
         }
@@ -42,7 +42,7 @@ class ErrorMonitor {
         message: 'Unhandled Promise Rejection',
         stack: event.reason?.stack,
         metadata: {
-          reason: event.reason
+          reason: event.reason as Record<string, unknown>
         }
       })
     }
@@ -83,7 +83,7 @@ class ErrorMonitor {
     */
   }
 
-  public logWarning(message: string, metadata?: Record<string, any>) {
+  public logWarning(message: string, metadata?: Record<string, unknown>) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('Warning logged:', message, metadata)
       return
@@ -93,7 +93,7 @@ class ErrorMonitor {
     // this.logToService({ level: 'warning', message, metadata })
   }
 
-  public logInfo(message: string, metadata?: Record<string, any>) {
+  public logInfo(message: string, metadata?: Record<string, unknown>) {
     if (process.env.NODE_ENV === 'development') {
       console.log('Info logged:', message, metadata)
       return
@@ -103,7 +103,7 @@ class ErrorMonitor {
     // this.logToService({ level: 'info', message, metadata })
   }
 
-  public setGlobalMetadata(metadata: Record<string, any>) {
+  public setGlobalMetadata(_metadata: Record<string, unknown>) {
     // Add any global metadata that should be included with all error reports
     // For example: user information, app version, etc.
     // this.globalMetadata = metadata
