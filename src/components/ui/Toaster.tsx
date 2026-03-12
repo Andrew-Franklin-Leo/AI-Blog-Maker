@@ -5,7 +5,7 @@ interface ToasterProps {
   duration?: number
 }
 
-export const Toaster = ({ duration = 3000 }: ToasterProps) => {
+const Toaster = ({ duration = 3000 }: ToasterProps) => {
   const { toasts, removeToast } = useToast()
 
   useEffect(() => {
@@ -44,4 +44,4 @@ export const Toaster = ({ duration = 3000 }: ToasterProps) => {
   )
 }
 
-export { useToast }
+export { Toaster, useToast }
