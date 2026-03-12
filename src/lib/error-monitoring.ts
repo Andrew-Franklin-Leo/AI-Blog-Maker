@@ -2,7 +2,7 @@ interface ErrorDetails {
   message: string
   stack?: string
   componentStack?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 }
 
 class ErrorMonitor {
@@ -58,55 +58,25 @@ class ErrorMonitor {
     }
 
     // In production, you would send this to your error tracking service
-    // Example with a hypothetical error tracking service:
-    /*
-    try {
-      fetch('/api/log-error', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          timestamp: new Date().toISOString(),
-          environment: process.env.NODE_ENV,
-          ...details,
-          // Add any other relevant information
-          url: window.location.href,
-          userAgent: navigator.userAgent,
-        }),
-      })
-    } catch (e) {
-      // Fallback to console in case the logging endpoint fails
-      console.error('Failed to log error:', e)
-      console.error('Original error:', details)
-    }
-    */
   }
 
-  public logWarning(message: string, metadata?: Record<string, any>) {
+  public logWarning(message: string, metadata?: Record<string, unknown>) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('Warning logged:', message, metadata)
       return
     }
-
-    // In production, you might want to log warnings differently
-    // this.logToService({ level: 'warning', message, metadata })
   }
 
-  public logInfo(message: string, metadata?: Record<string, any>) {
+  public logInfo(message: string, metadata?: Record<string, unknown>) {
     if (process.env.NODE_ENV === 'development') {
       console.log('Info logged:', message, metadata)
       return
     }
-
-    // In production, you might want to log info differently
-    // this.logToService({ level: 'info', message, metadata })
   }
 
-  public setGlobalMetadata(metadata: Record<string, any>) {
+  public setGlobalMetadata(metadata: Record<string, unknown>) {
     // Add any global metadata that should be included with all error reports
-    // For example: user information, app version, etc.
-    // this.globalMetadata = metadata
+    console.log('Setting global metadata:', metadata)
   }
 }
 
