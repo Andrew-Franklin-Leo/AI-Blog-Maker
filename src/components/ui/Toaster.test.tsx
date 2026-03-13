@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, act } from "../../test/test-utils";
-import { useToast, Toaster } from "./Toaster";
+import { Toaster } from "./Toaster";
+import { useToast } from "../../hooks/useToast";
 import { useEffect } from "react";
 
 const TestComponent = ({
