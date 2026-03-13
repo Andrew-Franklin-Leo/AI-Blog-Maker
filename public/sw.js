@@ -1,3 +1,4 @@
+/* global clients */
 const CACHE_NAME = 'li-xia-blog-v1'
 const STATIC_ASSETS = [
   '/',

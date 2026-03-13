@@ -1,11 +1,11 @@
-import { ReactElement } from "react";
-import { BrowserRouter } from "react-router-dom";
-import { render, RenderOptions } from "@testing-library/react";
-import { vi } from "vitest";
-import { ToastProvider } from "../components/ui/Toaster";
+import { ReactElement, ReactNode } from 'react'
+import { BrowserRouter } from 'react-router-dom'
+import { render, RenderOptions } from '@testing-library/react'
+import { vi } from 'vitest'
+import { ToastProvider } from '../hooks/useToast'
 
 // Mock Supabase client
-vi.mock("@supabase/supabase-js", () => ({
+vi.mock('@supabase/supabase-js', () => ({
   createClient: () => ({
     auth: {
       getSession: () => ({ data: { session: null }, error: null }),
@@ -21,20 +21,20 @@ vi.mock("@supabase/supabase-js", () => ({
       }),
     }),
   }),
-}));
+}))
 
-const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+const AllTheProviders = ({ children }: { children: ReactNode }) => {
   return (
     <BrowserRouter>
       <ToastProvider>{children}</ToastProvider>
     </BrowserRouter>
-  );
-};
+  )
+}
 
 const customRender = (
   ui: ReactElement,
-  options?: Omit<RenderOptions, "wrapper">,
-) => render(ui, { wrapper: AllTheProviders, ...options });
+  options?: Omit<RenderOptions, 'wrapper'>
+) => render(ui, { wrapper: AllTheProviders, ...options })
 
-export * from "@testing-library/react";
-export { customRender as render };
+export * from '@testing-library/react'
+export { customRender as render }

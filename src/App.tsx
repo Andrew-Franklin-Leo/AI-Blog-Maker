@@ -1,10 +1,11 @@
-import { Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import CreatePost from "./pages/CreatePost";
-import ViewPost from "./pages/ViewPost";
-import TestAI from "./pages/TestAI";
-import { Toaster, ToastProvider } from "./components/ui/Toaster";
+import { Routes, Route } from 'react-router-dom'
+import Navbar from './components/Navbar'
+import Home from './pages/Home'
+import CreatePost from './pages/CreatePost'
+import ViewPost from './pages/ViewPost'
+import TestAI from './pages/TestAI'
+import { Toaster } from './components/ui/Toaster'
+import { ToastProvider } from './hooks/useToast'
 
 function App() {
   return (
@@ -22,7 +23,7 @@ function App() {
         <Toaster />
       </div>
     </ToastProvider>
-  );
+  )
 }
 
-export default App;
+export default App
